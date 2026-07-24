@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api'
+const API_BASE_URL = 'https://api.makurmalogstics.com/api'
 
 export async function downloadTruckProfitReport(truckId: number, regNo: string, year: number): Promise<void> {
   const token = localStorage.getItem('auth_token')

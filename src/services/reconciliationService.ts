@@ -1,7 +1,7 @@
 import type { ClientReconciliationSummary, VendorReconciliationSummary } from '../types/reconciliation'
 import { apiClient } from './apiClient'
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api'
+const API_BASE_URL = 'https://api.makurmalogstics.com/api'
 
 export async function fetchClientSummary(clientId: number): Promise<ClientReconciliationSummary> {
   return apiClient(`/reconciliation/clients/${clientId}/summary`)
