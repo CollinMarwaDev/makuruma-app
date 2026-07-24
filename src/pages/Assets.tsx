@@ -15,10 +15,10 @@ function Assets() {
   ]
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-4">Assets</h1>
 
-      <div className="flex gap-2 mb-6 bg-surface-2 rounded-lg p-1 w-fit ring-1 ring-white/5">
+      <div className="flex gap-2 mb-6 bg-surface-2 rounded-lg p-1 w-fit overflow-x-auto ring-1 ring-white/5">
         {tabs.map((t) => (
           <button
             key={t.value}

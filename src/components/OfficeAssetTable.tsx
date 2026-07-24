@@ -15,14 +15,14 @@ function OfficeAssetTable({ assets, onEdit, onDelete }: OfficeAssetTableProps) {
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Name</th>
-            <th className="px-4 py-3">Category</th>
-            <th className="px-4 py-3">Serial No.</th>
-            <th className="px-4 py-3">Buying Price</th>
-            <th className="px-4 py-3">Purchase Date</th>
-            <th className="px-4 py-3">Location</th>
-            <th className="px-4 py-3">Condition</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Name</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Category</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Serial No.</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Buying Price</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Purchase Date</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Location</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Condition</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
@@ -31,16 +31,16 @@ function OfficeAssetTable({ assets, onEdit, onDelete }: OfficeAssetTableProps) {
             const conditionInfo = OFFICE_ASSET_CONDITIONS.find((c) => c.value === asset.condition)
             return (
               <tr key={asset.id} className="hover:bg-surface transition-colors">
-                <td className="px-4 py-3 font-medium text-foreground">{asset.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{categoryLabel}</td>
-                <td className="px-4 py-3 text-muted-foreground">{asset.serial_number ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{asset.buying_price ? `TZS ${parseFloat(asset.buying_price).toLocaleString()}` : '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{asset.purchase_date?.slice(0, 10) ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{asset.location ?? '—'}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{asset.name}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{categoryLabel}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{asset.serial_number ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{asset.buying_price ? `TZS ${parseFloat(asset.buying_price).toLocaleString()}` : '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{asset.purchase_date?.slice(0, 10) ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{asset.location ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <Badge label={conditionInfo?.label ?? asset.condition} color={conditionInfo?.color ?? 'gray'} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <div className="flex justify-end gap-2">
                     <button onClick={() => onEdit(asset)} className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Edit">
                       <Pencil size={16} />

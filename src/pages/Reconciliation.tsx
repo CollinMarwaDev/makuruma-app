@@ -98,11 +98,11 @@ function Reconciliation() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Reconciliation</h1>
       <p className="text-sm text-muted-foreground mb-6">Track outstanding revenue from clients and outstanding debt to vendors.</p>
 
-      <div className="flex gap-2 mb-6 bg-surface-2 rounded-lg p-1 w-fit ring-1 ring-white/5">
+      <div className="flex gap-2 mb-6 bg-surface-2 rounded-lg p-1 w-fit overflow-x-auto ring-1 ring-white/5">
         <button
           onClick={() => setTab('clients')}
           className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -129,12 +129,12 @@ function Reconciliation() {
             <table className="min-w-full text-sm">
               <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
                 <tr>
-                  <th className="px-4 py-3">Client</th>
-                  <th className="px-4 py-3">Invoices</th>
-                  <th className="px-4 py-3">Total Invoiced ($)</th>
-                  <th className="px-4 py-3">Total Paid ($)</th>
-                  <th className="px-4 py-3">Outstanding ($)</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Client</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Invoices</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Total Invoiced ($)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Total Paid ($)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Outstanding ($)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline">
@@ -142,14 +142,14 @@ function Reconciliation() {
                   const summary = clientSummaries[client.id]
                   return (
                     <tr key={client.id} className="hover:bg-surface transition-colors">
-                      <td className="px-4 py-3 font-medium text-foreground">{client.company_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{summary?.invoice_count ?? 0}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{summary?.total_invoiced.toLocaleString() ?? '0'}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{summary?.total_paid.toLocaleString() ?? '0'}</td>
-                      <td className={`px-4 py-3 font-medium ${summary && summary.outstanding > 0 ? 'text-destructive' : 'text-brand'}`}>
+                      <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{client.company_name}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{summary?.invoice_count ?? 0}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{summary?.total_invoiced.toLocaleString() ?? '0'}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{summary?.total_paid.toLocaleString() ?? '0'}</td>
+                      <td className={`px-2 py-2 md:px-4 md:py-3 font-medium ${summary && summary.outstanding > 0 ? 'text-destructive' : 'text-brand'}`}>
                         {summary?.outstanding.toLocaleString() ?? '0'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-2 md:px-4 md:py-3">
                         <div className="flex justify-end">
                           <button
                             onClick={() => handleDownloadStatement(client)}
@@ -178,11 +178,11 @@ function Reconciliation() {
             <table className="min-w-full text-sm">
               <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
                 <tr>
-                  <th className="px-4 py-3">Vendor</th>
-                  <th className="px-4 py-3">Total Debt (TZS)</th>
-                  <th className="px-4 py-3">Total Paid (TZS)</th>
-                  <th className="px-4 py-3">Balance (TZS)</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Vendor</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Total Debt (TZS)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Total Paid (TZS)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3">Balance (TZS)</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline">
@@ -190,13 +190,13 @@ function Reconciliation() {
                   const summary = vendorSummaries[vendor.id]
                   return (
                     <tr key={vendor.id} className="hover:bg-surface transition-colors">
-                      <td className="px-4 py-3 font-medium text-foreground">{vendor.company_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{summary?.total_debt.toLocaleString() ?? '0'}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{summary?.total_paid.toLocaleString() ?? '0'}</td>
-                      <td className={`px-4 py-3 font-medium ${summary && summary.balance > 0 ? 'text-destructive' : 'text-brand'}`}>
+                      <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{vendor.company_name}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{summary?.total_debt.toLocaleString() ?? '0'}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{summary?.total_paid.toLocaleString() ?? '0'}</td>
+                      <td className={`px-2 py-2 md:px-4 md:py-3 font-medium ${summary && summary.balance > 0 ? 'text-destructive' : 'text-brand'}`}>
                         {summary?.balance.toLocaleString() ?? '0'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 py-2 md:px-4 md:py-3">
                         <div className="flex justify-end gap-1.5">
                           <button
                             onClick={() => setPaymentModalVendorId(vendor.id)}

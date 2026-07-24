@@ -173,7 +173,7 @@ function Expenses() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   const categoryTabs: { value: ExpenseCategory | 'all'; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -183,8 +183,8 @@ function Expenses() {
   ]
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Expenses</h1>
         <button
           onClick={openAddModal}
@@ -196,7 +196,7 @@ function Expenses() {
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
-        <div className="flex gap-2 bg-surface-2 rounded-lg p-1 w-fit ring-1 ring-white/5">
+        <div className="flex gap-2 bg-surface-2 rounded-lg p-1 w-fit overflow-x-auto ring-1 ring-white/5">
           {categoryTabs.map((tab) => (
             <button
               key={tab.value}
@@ -223,7 +223,7 @@ function Expenses() {
           ))}
         </select>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <label className="text-xs text-muted-foreground">From</label>
           <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
             className="bg-secondary ring-1 ring-border rounded-lg px-2 py-1.5 text-sm text-foreground" />

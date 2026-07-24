@@ -15,14 +15,14 @@ function BookingTable({ bookings, onEdit, onDelete, onDownload }: BookingTablePr
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Booking No.</th>
-            <th className="px-4 py-3">Direction</th>
-            <th className="px-4 py-3">Client</th>
-            <th className="px-4 py-3">Trucks</th>
-            <th className="px-4 py-3">ETA</th>
-            <th className="px-4 py-3">Loading Point</th>
-            <th className="px-4 py-3">Offloading Point</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Booking No.</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Direction</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Client</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Trucks</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">ETA</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Loading Point</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Offloading Point</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
@@ -31,18 +31,18 @@ function BookingTable({ bookings, onEdit, onDelete, onDownload }: BookingTablePr
 
             return (
               <tr key={booking.id} className="hover:bg-surface transition-colors">
-                <td className="px-4 py-3 font-medium text-foreground">{booking.booking_number}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{booking.booking_number}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <Badge label={booking.direction === 'go' ? 'Go' : 'Return'} color={booking.direction === 'go' ? 'yellow' : 'green'} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{booking.client.company_name}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-xs truncate" title={truckRegNos}>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{booking.client.company_name}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground max-w-xs truncate" title={truckRegNos}>
                   {truckRegNos} <span className="text-muted-foreground/70">({booking.booking_trucks.length})</span>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{booking.eta ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{booking.loading_point ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{booking.offloading_point ?? '—'}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{booking.eta ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{booking.loading_point ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{booking.offloading_point ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <div className="flex justify-end gap-2">
                     <button onClick={() => onDownload(booking)} className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Download access list">
                       <Download size={16} />

@@ -68,7 +68,7 @@ function Trailers() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   return (
     <div>

@@ -49,11 +49,11 @@ function Staff() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Staff</h1>
         <button onClick={openAddModal} className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity">
           <Plus size={18} />

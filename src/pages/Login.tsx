@@ -43,7 +43,7 @@ function Login() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-card rounded-xl ring-1 ring-white/10 shadow-xl p-8"
+          className="bg-card rounded-xl ring-1 ring-white/10 shadow-xl p-4 md:p-8"
         >
           <h1 className="text-xl font-semibold text-foreground mb-1">Welcome back</h1>
           <p className="text-sm text-muted-foreground mb-6">Sign in to manage your fleet</p>

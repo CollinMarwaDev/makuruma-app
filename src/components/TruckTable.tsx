@@ -29,37 +29,37 @@ function TruckTable({ trucks, onEdit, onDelete }: TruckTableProps) {
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Reg No</th>
-            <th className="px-4 py-3">Capacity</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Trailer</th>
-            <th className="px-4 py-3">Driver</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Reg No</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Capacity</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Status</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Trailer</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Driver</th>
             {TRUCK_COMPLIANCE_TYPES.map(({ key, label }) => (
-              <th key={key} className="px-4 py-3">{label}</th>
+              <th key={key} className="px-2 py-2 md:px-4 md:py-3">{label}</th>
             ))}
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
           {trucks.map((truck) => (
             <tr key={truck.id} className="hover:bg-surface transition-colors">
-              <td className="px-4 py-3 font-medium text-foreground">{truck.reg_no}</td>
-              <td className="px-4 py-3 text-muted-foreground">{truck.capacity} tons</td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{truck.reg_no}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{truck.capacity} tons</td>
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <Badge label={truck.status} color={statusColors[truck.status]} />
               </td>
-              <td className="px-4 py-3 text-muted-foreground">{truck.trailer?.reg_no ?? '—'}</td>
-              <td className="px-4 py-3 text-muted-foreground">{truck.driver?.full_name ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{truck.trailer?.reg_no ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{truck.driver?.full_name ?? '—'}</td>
               {TRUCK_COMPLIANCE_TYPES.map(({ key }) => {
                 const doc = truck.documents.find((d) => d.document_type === key)
                 const status = doc ? getExpiryStatus(doc) : 'unknown'
                 return (
-                  <td key={key} className="px-4 py-3">
+                  <td key={key} className="px-2 py-2 md:px-4 md:py-3">
                     <Badge label={doc?.expiry_date?.slice(0, 10) ?? '—'} color={expiryColors[status]} />
                   </td>
                 )
               })}
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => onEdit(truck)}

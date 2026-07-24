@@ -20,16 +20,16 @@ function InvoiceTable({ invoices, userRoleSlug, onEdit, onDelete, onDownload, on
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Invoice No.</th>
-            <th className="px-4 py-3">Type</th>
-            <th className="px-4 py-3">Booking</th>
-            <th className="px-4 py-3">Client</th>
-            <th className="px-4 py-3">Trucks</th>
-            <th className="px-4 py-3">Date</th>
-            <th className="px-4 py-3">Total</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Created By</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Invoice No.</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Type</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Booking</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Client</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Trucks</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Date</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Total</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Status</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Created By</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
@@ -39,18 +39,18 @@ function InvoiceTable({ invoices, userRoleSlug, onEdit, onDelete, onDownload, on
 
             return (
               <tr key={inv.id} className="hover:bg-surface transition-colors">
-                <td className="px-4 py-3 font-medium text-foreground">{inv.invoice_number}</td>
-                <td className="px-4 py-3 text-muted-foreground">{typeLabel}</td>
-                <td className="px-4 py-3 text-muted-foreground">{inv.booking.booking_number}</td>
-                <td className="px-4 py-3 text-muted-foreground">{inv.booking.client.company_name}</td>
-                <td className="px-4 py-3 text-muted-foreground max-w-xs truncate" title={truckRegNos}>{truckRegNos}</td>
-                <td className="px-4 py-3 text-muted-foreground">{inv.invoice_date.slice(0, 10)}</td>
-                <td className="px-4 py-3 text-foreground font-medium">$ {parseFloat(inv.total_amount).toLocaleString()}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{inv.invoice_number}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{typeLabel}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{inv.booking.booking_number}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{inv.booking.client.company_name}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground max-w-xs truncate" title={truckRegNos}>{truckRegNos}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{inv.invoice_date.slice(0, 10)}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-foreground font-medium">$ {parseFloat(inv.total_amount).toLocaleString()}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <Badge label={inv.status === 'paid' ? 'Paid' : 'Pending'} color={inv.status === 'paid' ? 'green' : 'yellow'} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground text-xs">{inv.creator.name}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground text-xs">{inv.creator.name}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <div className="flex justify-end gap-1.5">
                     <button onClick={() => onDownload(inv)} className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Download">
                       <Download size={16} />

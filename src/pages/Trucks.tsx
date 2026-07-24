@@ -73,11 +73,11 @@ function Trucks() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <button
           onClick={openAddModal}
           className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"

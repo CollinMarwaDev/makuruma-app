@@ -15,23 +15,23 @@ function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Company Name</th>
-            <th className="px-4 py-3">Email</th>
-            <th className="px-4 py-3">Phone</th>
-            <th className="px-4 py-3">Advance Invoicing</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Company Name</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Email</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Phone</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Advance Invoicing</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
           {clients.map((client) => (
             <tr key={client.id} className="hover:bg-surface transition-colors">
-              <td className="px-4 py-3 font-medium text-foreground">{client.company_name}</td>
-              <td className="px-4 py-3 text-muted-foreground">{client.email ?? '—'}</td>
-              <td className="px-4 py-3 text-muted-foreground">{client.phone ?? '—'}</td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{client.company_name}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{client.email ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{client.phone ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3">
   <Badge label={client.allows_advance_invoice ? 'Allowed' : 'Not Allowed'} color={client.allows_advance_invoice ? 'green' : 'gray'} />
 </td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <div className="flex justify-end gap-2">
                   <button onClick={() => onEdit(client)} className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Edit client">
                     <Pencil size={16} />

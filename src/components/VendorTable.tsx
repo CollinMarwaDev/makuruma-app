@@ -14,21 +14,21 @@ function VendorTable({ vendors, onEdit, onDelete }: VendorTableProps) {
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Company Name</th>
-            <th className="px-4 py-3">Vendor Type</th>
-            <th className="px-4 py-3">Phone</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Company Name</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Vendor Type</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Phone</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
           {vendors.map((vendor) => (
             <tr key={vendor.id} className="hover:bg-surface transition-colors">
-              <td className="px-4 py-3 font-medium text-foreground">{vendor.company_name}</td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{vendor.company_name}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <Badge label={vendor.vendor_type === 'fuel' ? 'Fuel' : 'E-seal'} color={vendor.vendor_type === 'fuel' ? 'yellow' : 'gray'} />
               </td>
-              <td className="px-4 py-3 text-muted-foreground">{vendor.phone ?? '—'}</td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{vendor.phone ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <div className="flex justify-end gap-2">
                   <button onClick={() => onEdit(vendor)} className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors" title="Edit vendor">
                     <Pencil size={16} />

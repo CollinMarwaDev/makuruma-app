@@ -132,7 +132,7 @@ function Tracking() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   const tabs: { value: TripStatusTab; label: string }[] = [
     { value: 'all', label: `All Trucks (${tabCounts.all})` },
@@ -142,10 +142,10 @@ function Tracking() {
   ]
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="flex items-center justify-between mb-1">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tracking</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={handleExportCsv}
             disabled={isExporting || filteredTrucks.length === 0}

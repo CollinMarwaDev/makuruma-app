@@ -27,10 +27,10 @@ function Trips() {
     return () => { cancelled = true }
   }, [])
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Trips</h1>
       <p className="text-sm text-muted-foreground mb-6">Each truck's Go and Return journey, linked by Trip Code.</p>
 

@@ -28,14 +28,14 @@ function TripsTable({ trips }: TripsTableProps) {
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Trip Code</th>
-            <th className="px-4 py-3">Truck</th>
-            <th className="px-4 py-3">Go Booking</th>
-            <th className="px-4 py-3">Go Client</th>
-            <th className="px-4 py-3">Return Booking</th>
-            <th className="px-4 py-3">Return Client</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Trip Code</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Truck</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Go Booking</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Go Client</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Return Booking</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Return Client</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Status</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
@@ -44,16 +44,16 @@ function TripsTable({ trips }: TripsTableProps) {
 
             return (
               <tr key={trip.id} className="hover:bg-surface transition-colors">
-                <td className="px-4 py-3 font-medium text-foreground">{trip.trip_code}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trip.truck.reg_no}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trip.go_booking_truck?.booking.booking_number ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trip.go_booking_truck?.booking.client.company_name ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trip.return_booking_truck?.booking.booking_number ?? '—'}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trip.return_booking_truck?.booking.client.company_name ?? '—'}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{trip.trip_code}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{trip.truck.reg_no}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{trip.go_booking_truck?.booking.booking_number ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{trip.go_booking_truck?.booking.client.company_name ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{trip.return_booking_truck?.booking.booking_number ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{trip.return_booking_truck?.booking.client.company_name ?? '—'}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <Badge label={isComplete ? 'Completed' : 'Awaiting Return'} color={isComplete ? 'green' : 'yellow'} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleDownloadReport(trip.truck.id, trip.truck.reg_no)}

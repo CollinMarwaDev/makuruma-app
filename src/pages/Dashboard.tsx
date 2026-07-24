@@ -36,7 +36,7 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-8">
+      <div className="min-h-screen bg-background p-4 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-card rounded-xl ring-1 ring-white/5 h-24 animate-pulse" />
@@ -46,13 +46,13 @@ function Dashboard() {
     )
   }
 
-  if (error || !summary) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error || !summary) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   const inTransitCount = summary.tracking.in_transit + summary.tracking.at_border + summary.tracking.offloading
   const complianceTotal = summary.compliance.expired + summary.compliance.expiring_soon
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-balance text-foreground">
           Welcome back, {user?.name?.split(' ')[0]}

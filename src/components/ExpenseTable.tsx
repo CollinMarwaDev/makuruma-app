@@ -47,41 +47,41 @@ function ExpenseTable({
       <table className="min-w-full text-sm">
         <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
           <tr>
-            <th className="px-4 py-3">Order Number</th>
-            <th className="px-4 py-3">Reference No.</th>
-            <th className="px-4 py-3">Category</th>
-            <th className="px-4 py-3">Reference</th>
-            <th className="px-4 py-3">Created By</th>
-            <th className="px-4 py-3">Initiated By</th>
-            <th className="px-4 py-3">Payment Date</th>
-            <th className="px-4 py-3">Total (TZS)</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Approved By</th>
-            <th className="px-4 py-3">Paid By</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Order Number</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Reference No.</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Category</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Reference</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Created By</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Initiated By</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Payment Date</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Total (TZS)</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Status</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Approved By</th>
+            <th className="px-2 py-2 md:px-4 md:py-3">Paid By</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-hairline">
           {expenses.map((exp) => (
             <tr key={exp.id} className="hover:bg-surface transition-colors">
-              <td className="px-4 py-3 font-medium text-foreground">{exp.order_number}</td>
-              <td className="px-4 py-3 text-muted-foreground">{exp.reference_no ?? '—'}</td>
-              <td className="px-4 py-3 text-muted-foreground capitalize">{exp.category}</td>
-              <td className="px-4 py-3 text-muted-foreground">
+              <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{exp.order_number}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{exp.reference_no ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground capitalize">{exp.category}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">
                 {exp.booking?.booking_number ?? exp.truck?.reg_no ?? '—'}
               </td>
-              <td className="px-4 py-3 text-muted-foreground">{exp.creator.name}</td>
-              <td className="px-4 py-3 text-muted-foreground">{exp.initiated_by ?? '—'}</td>
-              <td className="px-4 py-3 text-muted-foreground">{exp.payment_date ? exp.payment_date.slice(0, 10) : '—'}</td>
-              <td className="px-4 py-3 text-foreground font-medium">
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{exp.creator.name}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{exp.initiated_by ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{exp.payment_date ? exp.payment_date.slice(0, 10) : '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-foreground font-medium">
                 TZS {parseFloat(exp.total_amount).toLocaleString()}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <Badge label={exp.status} color={statusColors[exp.status]} />
               </td>
-              <td className="px-4 py-3 text-muted-foreground text-xs">{exp.approver?.name ?? '—'}</td>
-              <td className="px-4 py-3 text-muted-foreground text-xs">{exp.payer?.name ?? '—'}</td>
-              <td className="px-4 py-3">
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground text-xs">{exp.approver?.name ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground text-xs">{exp.payer?.name ?? '—'}</td>
+              <td className="px-2 py-2 md:px-4 md:py-3">
                 <div className="flex justify-end gap-1.5">
                   <button
                     onClick={() => onDownload(exp)}

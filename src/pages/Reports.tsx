@@ -54,10 +54,10 @@ function Reports() {
     }
   }
 
-  if (error) return <p className="p-8 text-destructive">Error: {error}</p>
+  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Reports</h1>
       <p className="text-sm text-muted-foreground mb-6">Download the full Go &amp; Return profit report for any truck, for any year.</p>
 
@@ -68,20 +68,20 @@ function Reports() {
           <table className="min-w-full text-sm">
             <thead className="bg-surface-2 text-left text-muted-foreground uppercase text-xs tracking-wider">
               <tr>
-                <th className="px-4 py-3">Truck Number</th>
-                <th className="px-4 py-3">Trailer</th>
-                <th className="px-4 py-3">Driver</th>
-                <th className="px-4 py-3">Year</th>
-                <th className="px-4 py-3 text-right">Actions</th>
+                <th className="px-2 py-2 md:px-4 md:py-3">Truck Number</th>
+                <th className="px-2 py-2 md:px-4 md:py-3">Trailer</th>
+                <th className="px-2 py-2 md:px-4 md:py-3">Driver</th>
+                <th className="px-2 py-2 md:px-4 md:py-3">Year</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
               {trucks.map((truck) => (
                 <tr key={truck.id} className="hover:bg-surface transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground">{truck.reg_no}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{truck.trailer?.reg_no ?? '—'}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{truck.driver?.full_name ?? '—'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-foreground">{truck.reg_no}</td>
+                  <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{truck.trailer?.reg_no ?? '—'}</td>
+                  <td className="px-2 py-2 md:px-4 md:py-3 text-muted-foreground">{truck.driver?.full_name ?? '—'}</td>
+                  <td className="px-2 py-2 md:px-4 md:py-3">
                     <select
                       value={selectedYears[truck.id] ?? currentYear}
                       onChange={(e) => setYearForTruck(truck.id, parseInt(e.target.value, 10))}
@@ -92,7 +92,7 @@ function Reports() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2 md:px-4 md:py-3">
                     <div className="flex justify-end">
                       <button
                         onClick={() => handleDownload(truck)}

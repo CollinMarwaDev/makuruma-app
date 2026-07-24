@@ -454,7 +454,7 @@ function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
                       </div>
                     )}
                     {usesQuantityRate && (
-                      <div className="grid grid-cols-2 gap-2 mb-2 w-80">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2 w-full sm:w-80">
                         <div>
                           <label className="block text-xs text-muted-foreground mb-1">Quantity</label>
                           <input type="number" step="0.01" value={row.quantity} onChange={(e) => updateRow(row.key, 'quantity', e.target.value)}
