@@ -11,6 +11,7 @@ export const TRACKING_STATUS_OPTIONS: { value: TrackingStatus; label: string }[]
 ]
 
 export const TRACKING_STATUS_COLORS: Record<TrackingStatus, 'green' | 'yellow' | 'red' | 'gray'> = {
+  pending: 'gray',
   loading: 'gray',
   in_transit: 'yellow',
   at_border: 'yellow',
