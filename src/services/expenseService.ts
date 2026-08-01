@@ -1,7 +1,7 @@
 import type { ExpenseOrder, ExpenseCategory, LineCategory, Currency } from '../types/expense'
 import { apiClient } from './apiClient'
 
-const API_BASE_URL = 'https://api.makurmalogstics.com/api'
+import { API_BASE_URL } from './apiClient'
 
 export interface ExpenseLineInput {
   line_category: LineCategory

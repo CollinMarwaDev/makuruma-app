@@ -1,7 +1,7 @@
 import type { Booking, EligibleTruck } from '../types/booking'
 import { apiClient } from './apiClient'
 
-const API_BASE_URL = 'https://api.makurmalogstics.com/api'
+import { API_BASE_URL } from './apiClient'
 
 export interface CreateBookingData {
   direction: 'go' | 'return'

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.makurmalogstics.com/api'
+import { API_BASE_URL } from './apiClient'
 
 type DocumentableResource = 'trucks' | 'staff' | 'drivers' | 'trailers'
 

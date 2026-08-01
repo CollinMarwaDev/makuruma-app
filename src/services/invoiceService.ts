@@ -1,7 +1,7 @@
 import type { Invoice, InvoiceType, EligibleInvoiceTruck } from '../types/invoice'
 import { apiClient } from './apiClient'
 
-const API_BASE_URL = 'https://api.makurmalogstics.com/api'
+import { API_BASE_URL } from './apiClient'
 
 export interface InvoiceLineInput {
   booking_truck_id: string

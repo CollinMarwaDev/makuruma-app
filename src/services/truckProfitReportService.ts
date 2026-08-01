@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api.makurmalogstics.com/api'
+import { API_BASE_URL } from './apiClient'
 
 export async function downloadTruckProfitReport(truckId: number, regNo: string, year: number): Promise<void> {
   const token = localStorage.getItem('auth_token')
