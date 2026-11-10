@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { BorderRoute, TrackingLeg } from '~/types/tracking'
 import { useSearchParamsState } from '~/global/utils/r3/hooks'
 
-export const TRACKING_PAGE_SIZE = 15
+export const TRACKING_PAGE_SIZE = 10
 
 export type TrackingView = 'active' | 'go' | 'return' | 'completed'
 

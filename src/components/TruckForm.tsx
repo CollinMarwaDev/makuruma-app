@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createTruck, updateTruck } from '../services/truckService'
 import { createDocument } from '../services/documentService'
 import { fetchTrailers } from '../services/trailerService'
 import { fetchDrivers } from '../services/driverService'
+import { fetchTrucks } from '../services/truckService'
+import { ComboboxSelect } from '~/global/components/form-controls/combobox-input/combobox-select'
 import { TRUCK_COMPLIANCE_TYPES } from '../constants/compliance'
 import type { Truck } from '../types/truck'
 import type { Trailer } from '../types/trailer'
 import type { Driver } from '../types/employee'
-import { Loader2 } from 'lucide-react'
 
 interface ComplianceFieldState {
   dueDate: string
@@ -41,6 +43,7 @@ function TruckForm({ truck, onSaved }: TruckFormProps) {
 
   const [trailers, setTrailers] = useState<Trailer[]>([])
   const [drivers, setDrivers] = useState<Driver[]>([])
+  const [otherTrucks, setOtherTrucks] = useState<Truck[]>([])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,7 +51,18 @@ function TruckForm({ truck, onSaved }: TruckFormProps) {
   useEffect(() => {
     fetchTrailers().then(setTrailers).catch(() => setTrailers([]))
     fetchDrivers().then(setDrivers).catch(() => setDrivers([]))
-  }, [])
+    fetchTrucks()
+      .then((all) => setOtherTrucks(all.filter((t) => t.id !== truck?.id)))
+      .catch(() => setOtherTrucks([]))
+  }, [truck?.id])
+
+  // One truck ↔ one trailer and one driver: hide the ones already on another truck.
+  const takenTrailers = new Set(otherTrucks.map((t) => t.trailer_id).filter(Boolean))
+  const takenDrivers = new Set(otherTrucks.map((t) => t.driver_id).filter(Boolean))
+  const trailerOptions = trailers.filter((t) => t.id === truck?.trailer_id || !takenTrailers.has(t.id)).map((t) => ({ label: t.reg_no, value: String(t.id) }))
+  const driverOptions = drivers
+    .filter((d) => d.id === truck?.driver_id || !takenDrivers.has(d.id))
+    .map((d) => ({ label: d.phone ? `${d.full_name} · ${d.phone}` : d.full_name, value: String(d.id) }))
 
   function updateCompliance(key: string, field: keyof ComplianceFieldState, value: string | File | null) {
     setCompliance((prev) => ({
@@ -139,32 +153,26 @@ function TruckForm({ truck, onSaved }: TruckFormProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Assigned Trailer</label>
-          <select
-            value={trailerId}
-            onChange={(e) => setTrailerId(e.target.value)}
-            className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
-          >
-            <option value="">— None —</option>
-            {trailers.map((t) => (
-              <option key={t.id} value={t.id}>{t.reg_no}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Assigned Driver</label>
-          <select
-            value={driverId}
-            onChange={(e) => setDriverId(e.target.value)}
-            className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
-          >
-            <option value="">— None —</option>
-            {drivers.map((d) => (
-              <option key={d.id} value={d.id}>{d.full_name}</option>
-            ))}
-          </select>
-        </div>
+        <ComboboxSelect
+          label="Assigned trailer"
+          placeholder="Search trailer reg no"
+          searchLabel="Type the trailer number"
+          clearLabel="— No trailer —"
+          emptyMessage="No free trailer matches. Trailers already on another truck are hidden."
+          options={trailerOptions}
+          value={trailerId}
+          onChange={setTrailerId}
+        />
+        <ComboboxSelect
+          label="Assigned driver"
+          placeholder="Search driver name"
+          searchLabel="Type the driver name"
+          clearLabel="— No driver —"
+          emptyMessage="No free driver matches. Drivers already on another truck are hidden."
+          options={driverOptions}
+          value={driverId}
+          onChange={setDriverId}
+        />
       </div>
 
       {isEditMode && (
@@ -199,14 +207,9 @@ function TruckForm({ truck, onSaved }: TruckFormProps) {
         ))}
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-      >
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Saving...' : isEditMode ? 'Update Truck' : 'Save Truck'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update Truck' : 'Save Truck'}
+      </Button>
     </form>
   )
 }

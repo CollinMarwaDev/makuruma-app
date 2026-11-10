@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createTrailer, updateTrailer } from '../services/trailerService'
 import { createDocument } from '../services/documentService'
 import { TRAILER_COMPLIANCE_TYPES } from '../constants/compliance'
 import type { Trailer } from '../types/trailer'
-import { Loader2 } from 'lucide-react'
 
 interface ComplianceFieldState {
   dueDate: string
@@ -109,14 +109,9 @@ function TrailerForm({ trailer, onSaved }: TrailerFormProps) {
         ))}
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-      >
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Saving...' : isEditMode ? 'Update Trailer' : 'Save Trailer'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update Trailer' : 'Save Trailer'}
+      </Button>
     </form>
   )
 }

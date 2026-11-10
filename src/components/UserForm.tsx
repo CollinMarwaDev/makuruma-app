@@ -1,8 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createUser, updateUser } from '../services/userService'
 import { fetchRoles } from '../services/roleService'
 import type { UserRecord, Role } from '../types/user'
-import { Loader2 } from 'lucide-react'
 interface UserFormProps {
   user?: UserRecord | null
   onSaved: () => void
@@ -127,14 +127,9 @@ function UserForm({ user, onSaved }: UserFormProps) {
         </p>
       )}
 
-      <button
-  type="submit"
-  disabled={isSubmitting}
-  className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
->
-  {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-  {isSubmitting ? 'Saving...' : isEditMode ? 'Update' : 'Save'}
-</button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update' : 'Save'}
+      </Button>
     </form>
   )
 }

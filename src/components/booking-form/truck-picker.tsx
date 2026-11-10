@@ -1,4 +1,5 @@
 import { useState, type FC } from 'react'
+import { Button } from '~/global/components/button'
 import type { EligibleTruck } from '~/types/booking'
 import { cn } from '~/global/utils/cn'
 import { SearchBox } from '~/global/components/search-box'
@@ -44,14 +45,17 @@ export const TruckPicker: FC<TruckPickerProps> = ({ actionLabel, busyTruckId, em
                 </span>
                 {reason && <p className="text-xs text-status-red-pc">{reason} — can't be booked</p>}
               </div>
-              <button
+              <Button
                 type="button"
-                disabled={!!reason || busyTruckId === truck.id}
+                variant="tonal"
+                disabled={!!reason}
+                loading={busyTruckId === truck.id}
+                loadingText="Saving…"
                 onClick={() => onPick(truck)}
-                className="rounded-lg px-3 py-1 text-xs font-medium text-primary ring-1 ring-primary/40 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className="px-3 py-1 text-xs"
               >
-                {busyTruckId === truck.id ? 'Saving…' : actionLabel}
-              </button>
+                {actionLabel}
+              </Button>
             </li>
           )
         })}

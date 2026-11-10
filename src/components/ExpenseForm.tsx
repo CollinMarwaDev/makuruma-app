@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import {
   createExpenseOrder,
   updateExpenseOrder,
@@ -12,7 +13,7 @@ import type { Booking } from '../types/booking'
 import type { Truck } from '../types/truck'
 import type { Vendor } from '../types/partner'
 import { LINE_CATEGORIES, CURRENCIES } from '../constants/expenseLineCategories'
-import { Loader2, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 interface ExpenseFormProps {
   expense?: ExpenseOrder | null
@@ -529,11 +530,9 @@ function ExpenseForm({ expense, onSaved }: ExpenseFormProps) {
         <span className="text-lg font-bold text-foreground">TZS {total.toLocaleString()}</span>
       </div>
 
-      <button type="submit" disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Saving...' : isEditMode ? 'Update Expense' : 'Create Expense Order'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update Expense' : 'Create Expense Order'}
+      </Button>
     </form>
   )
 }

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createOfficeAsset, updateOfficeAsset } from '../services/officeAssetService'
 import { OFFICE_ASSET_CATEGORIES, OFFICE_ASSET_CONDITIONS } from '../constants/officeAssetOptions'
 import type { OfficeAsset, OfficeAssetCategory, OfficeAssetCondition } from '../types/OfficeAsset'
-import { Loader2 } from 'lucide-react'
 
 interface OfficeAssetFormProps {
   asset?: OfficeAsset | null
@@ -115,11 +115,9 @@ function OfficeAssetForm({ asset, onSaved }: OfficeAssetFormProps) {
           className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground" />
       </div>
 
-      <button type="submit" disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Saving...' : isEditMode ? 'Update Asset' : 'Save Asset'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update Asset' : 'Save Asset'}
+      </Button>
     </form>
   )
 }

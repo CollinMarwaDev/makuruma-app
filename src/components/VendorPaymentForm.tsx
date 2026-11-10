@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createVendorPayment } from '../services/vendorPaymentService'
-import { Loader2 } from 'lucide-react'
 
 interface VendorPaymentFormProps {
   vendorId: number
@@ -61,11 +61,9 @@ function VendorPaymentForm({ vendorId, onSaved }: VendorPaymentFormProps) {
           placeholder="e.g. Bank transfer for July fuel debt" className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground" />
       </div>
 
-      <button type="submit" disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Recording...' : 'Record Payment'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Recording…">
+        Record Payment
+      </Button>
     </form>
   )
 }

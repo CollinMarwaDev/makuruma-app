@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
+import { Button } from '~/global/components/button'
 import { createDriver, updateDriver } from '../services/driverService'
 import { createDocument } from '../services/documentService'
 import { DRIVER_DOCUMENT_TYPES } from '../constants/employeeCompliance'
 import type { Driver } from '../types/employee'
-import { Loader2 } from 'lucide-react'
 
 interface DriverFormProps {
   driver?: Driver | null
@@ -120,11 +120,9 @@ function DriverForm({ driver, onSaved }: DriverFormProps) {
         ))}
       </div>
 
-      <button type="submit" disabled={isSubmitting}
-        className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-        {isSubmitting && <Loader2 size={16} className="animate-spin" />}
-        {isSubmitting ? 'Saving...' : isEditMode ? 'Update Driver' : 'Save Driver'}
-      </button>
+      <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Saving…">
+        {isEditMode ? 'Update Driver' : 'Save Driver'}
+      </Button>
     </form>
   )
 }
