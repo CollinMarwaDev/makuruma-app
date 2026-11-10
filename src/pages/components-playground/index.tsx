@@ -26,6 +26,7 @@ import { ProgressComponent } from "~/pages/components-playground/progress-compon
 import SkeletonLoaderComponent from "~/pages/components-playground/skeleton-loader-component";
 import { TabLinkComponent } from "~/pages/components-playground/tab-link-component";
 import TableComponent from "~/pages/components-playground/table/table-component";
+import { ListParamsComponent } from "~/pages/components-playground/list-params-component";
 import TimelineComponent from "~/pages/components-playground/timeline-component";
 import BreadcrumbComponent from "~/pages/components-playground/breadcrumb-component";
 import CustomToastComponents from "~/pages/components-playground/custom-toast-components";
@@ -121,6 +122,7 @@ const ComponentsPlayground = () => {
                     <EmptyStatesComponent />
 
                     <TableComponent />
+                    <ListParamsComponent />
                     <ChartComponents />
                 </section>
             </section>

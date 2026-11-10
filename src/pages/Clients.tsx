@@ -1,100 +1,105 @@
-import { useEffect, useState } from 'react'
-import type { Client } from '../types/partner'
-import { fetchClients, deleteClient } from '../services/clientService'
-import ClientForm from '../components/ClientForm'
-import ClientTable from '../components/ClientTable'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import type { Client } from '~/types/partner'
+import { deleteClient, fetchClients } from '~/services/clientService'
+import ClientForm from '~/components/ClientForm'
+import { ClientDetails } from '~/components/clients/client-details'
+import { ClientsTableSection } from '~/components/clients/clients-table-section'
+import { DetailsSlideOver } from '~/components/common/details-slide-over'
+import { useDetailsParam } from '~/components/common/use-details-param'
+import { useFetchList } from '~/components/common/use-fetch-list'
+import Modal from '~/components/ui/Modal'
+import { Button } from '~/global/components/button'
+import { ErrorFallback, GeneralErrorBoundary } from '~/global/components/error-boundary'
+import PageHeader from '~/global/components/page-header'
+import { useConfirmation } from '~/global/providers/confirmation'
+import { getErrorMessage } from '~/global/utils/r3/utils'
+import { toast } from '~/global/utils/toast'
 
 function Clients() {
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingClient, setEditingClient] = useState<Client | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      if (!cancelled) {
-        setLoading(true)
-        setError(null)
-      }
-      try {
-        const data = await fetchClients()
-        if (!cancelled) setClients(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load clients')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [reloadTrigger])
-
-  function refresh() {
-    setReloadTrigger((prev) => prev + 1)
-  }
-
-  function openAddModal() {
-    setEditingClient(null)
-    setIsModalOpen(true)
-  }
-
-  function openEditModal(client: Client) {
-    setEditingClient(client)
-    setIsModalOpen(true)
-  }
-
-  function handleSaved() {
-    setIsModalOpen(false)
-    refresh()
-  }
+  const confirm = useConfirmation()
+  const { data: clients, error, loading, refresh } = useFetchList(fetchClients)
+  const { closeDetails, openDetails } = useDetailsParam()
+  const [form, setForm] = useState<{ client: Client | null } | null>(null)
 
   async function handleDelete(client: Client) {
-    if (!window.confirm(`Delete client ${client.company_name}? This can't be undone.`)) return
+    const ok = await confirm({
+      cancelText: 'Keep client',
+      description: 'This cannot be undone. Clients with bookings or invoices cannot be deleted.',
+      okayText: 'Delete client',
+      title: `Delete ${client.company_name}?`,
+      type: 'error',
+    })
+    if (!ok) return
     try {
       await deleteClient(client.id)
+      closeDetails()
+      toast.success(`${client.company_name} deleted`)
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete client')
+      toast.error(getErrorMessage(err))
     }
   }
 
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
+  function edit(client: Client) {
+    closeDetails()
+    setForm({ client })
+  }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Clients</h1>
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
-        >
-          <Plus size={18} />
-          Add Client
-        </button>
-      </div>
+    <div className="min-h-screen space-y-6 bg-background p-4 md:p-8">
+      <PageHeader
+        title="Clients"
+        subtitle="Companies you carry cargo for, and whether they can be invoiced in advance."
+        titleClassName="font-semibold tracking-tight text-foreground"
+        subTitleClassName="text-muted-foreground"
+      />
 
-      {loading ? (
-        <TableSkeleton columns={4} />
+      {error && !loading ? (
+        <ErrorFallback error={error} ctaLabel="Try again" ctaLink="/clients" />
       ) : (
-        <ClientTable clients={clients} onEdit={openEditModal} onDelete={handleDelete} />
+        <GeneralErrorBoundary>
+          <ClientsTableSection
+            clients={clients}
+            isLoading={loading}
+            onCreate={() => setForm({ client: null })}
+            onDelete={handleDelete}
+            onEdit={edit}
+            onView={(client) => openDetails(client.id)}
+          />
+        </GeneralErrorBoundary>
       )}
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingClient ? `Edit Client — ${editingClient.company_name}` : 'Add Client'}
+      <DetailsSlideOver
+        records={clients}
+        title={(client) => client.company_name}
+        footer={(client) => (
+          <>
+            <Button variant="outline" onClick={() => void handleDelete(client)}>Delete</Button>
+            <Button onClick={() => edit(client)}>Edit client</Button>
+          </>
+        )}
       >
-        <ClientForm client={editingClient} onSaved={handleSaved} />
+        {(client) => <ClientDetails client={client} />}
+      </DetailsSlideOver>
+
+      <Modal
+        isOpen={!!form}
+        onClose={() => setForm(null)}
+        title={form?.client ? `Edit Client — ${form.client.company_name}` : 'Add Client'}
+      >
+        <GeneralErrorBoundary>
+          {form && (
+            <ClientForm
+              key={form.client?.id ?? 'new'}
+              client={form.client}
+              onSaved={() => {
+                setForm(null)
+                toast.success('Client saved')
+                refresh()
+              }}
+            />
+          )}
+        </GeneralErrorBoundary>
       </Modal>
     </div>
   )

@@ -5,6 +5,8 @@ import type { Booking } from '../types/booking'
 import type { Invoice, InvoiceType, EligibleInvoiceTruck } from '../types/invoice'
 import { INVOICE_TYPES } from '../constants/invoiceTypes'
 import { Loader2 } from 'lucide-react'
+import { Button } from '~/global/components/button'
+import { StatusBadge } from '~/components/tracking/status-badge'
 
 interface InvoiceFormProps {
   invoice?: Invoice | null
@@ -168,6 +170,16 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
     }
   }, [bookingId, invoiceType, isEditMode])
 
+  const isFinished = (bt: EligibleInvoiceTruck) => Boolean(bt.offloading_date) || bt.current_status === 'completed'
+
+  /** Partial invoicing (contract 2.4): tick only trucks that have offloaded or completed. */
+  function selectFinishedOnly() {
+    truckState.eligible.forEach((bt) => {
+      const id = bt.id.toString()
+      if (isFinished(bt) !== truckState.selectedIds.includes(id)) toggleTruck(id, bt.capacity, bt.rate)
+    })
+  }
+
   function toggleTruck(truckId: string, capacity: string | null, rate: string | null) {
     dispatch({ type: 'TOGGLE_TRUCK', truckId, capacity, rate, invoiceType })
   }
@@ -327,6 +339,17 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
         <p className="text-sm text-muted-foreground mb-4">All trucks in this booking already have a {typeConfig.label} invoice.</p>
       )}
 
+      {!isEditMode && truckState.eligible.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            You can invoice part of the booking. Trucks you don't tick stay available for a later {typeConfig.label} invoice.
+          </p>
+          <Button type="button" variant="tonal" onClick={selectFinishedOnly} className="px-3 py-1.5 text-xs">
+            Select offloaded / completed only
+          </Button>
+        </div>
+      )}
+
       <div className="space-y-2 mb-6">
         {truckState.eligible.map((bt) => {
           const truckId = bt.id.toString()
@@ -340,6 +363,12 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
                   onChange={() => toggleTruck(truckId, bt.capacity, bt.rate)} className={isEditMode ? '' : 'cursor-pointer'} />
                 <span className="font-medium text-foreground">{bt.truck.reg_no}</span>
                 <span className="text-muted-foreground text-xs">{bt.trailer?.reg_no ?? 'no trailer'} · {bt.trip?.trip_code ?? '—'}</span>
+                <span className="ml-auto flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground">
+                  {(bt.loading_point || bt.offloading_point) && <span>{bt.loading_point ?? '—'} → {bt.offloading_point ?? '—'}</span>}
+                  {bt.cargo && <span>· {bt.cargo}</span>}
+                  {bt.offloading_date && <span>· offloaded {bt.offloading_date.slice(0, 10)}</span>}
+                  {bt.current_status && <StatusBadge status={bt.current_status} />}
+                </span>
               </label>
 
               {checked && line && (
