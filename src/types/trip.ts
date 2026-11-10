@@ -10,6 +10,14 @@ export interface TripBookingTruck {
   rate: string | null
   capacity: string | null
   is_overdue: boolean
+  /** Per-leg tracking (contract 2.2). */
+  current_status?: string
+  current_location?: string | null
+  eta?: string | null
+  loading_point?: string | null
+  offloading_point?: string | null
+  loading_date?: string | null
+  offloading_date?: string | null
   booking: {
     id: number
     booking_number: string
