@@ -5,6 +5,8 @@
 #   cd /var/www/makuruma/<frontend-folder>
 #   bash scripts/deploy-server.sh            # deploys origin/main
 #   bash scripts/deploy-server.sh my-branch
+# The script updates itself in step 1, so run a copy to be safe:
+#   cp scripts/deploy-server.sh /tmp/ && APP_DIR=$PWD bash /tmp/deploy-server.sh
 #
 # The app now uses pnpm (pinned in package.json); corepack, which ships with Node, provides it.
 # The build goes to dist/ in this folder. If Nginx serves another folder, set WEB_ROOT:
@@ -12,7 +14,7 @@
 set -euo pipefail
 
 BRANCH="${1:-main}"
-APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP_DIR="${APP_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 
 # Files stay owned by the normal server user even when this runs as root (e.g. Hostinger's browser terminal).
@@ -44,6 +46,9 @@ cat .env.production
 
 step "3/4 Install and build (pnpm)"
 command -v node >/dev/null || fail "Node.js is not installed."
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+# Older corepack (Node 20's) cannot unpack pnpm 12; update it once if needed.
+corepack --version | awk -F. '{ exit !($1 == 0 && $2 < 34) }' && sudo npm install -g corepack@latest
 corepack enable 2>/dev/null || sudo corepack enable
 pnpm install --frozen-lockfile
 pnpm build
