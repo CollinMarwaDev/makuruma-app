@@ -14,3 +14,9 @@ Key decisions so far:
 - Automatic completion and POD-overdue checks run from the Laravel scheduler (`php artisan schedule:work` locally, cron in production).
 
 Open items: per-item implementation plan to be approved before coding (see `delegate/contract-enhancements/`).
+
+## global-kit-list-pages — status: discussed
+
+Move every remaining list page (Trips, Assets, Staff, Drivers, Clients, Vendors, Expenses, Invoices, Reconciliation, Reports, Users) and Profile onto the global kit: TableSection search + filters, createTable, TabLinks, Pagination, EmptyState, ErrorFallback/GeneralErrorBoundary, SlideOver for details, useConfirmation for delete/approve, toast.
+
+Artifacts: `delegate/global-kit-list-pages/requirements.md` (awaiting confirm) → plan.md → tasks.md.
