@@ -72,10 +72,10 @@ export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading,
         }))}
       />
 
-      <TableSection.Header className="flex-wrap gap-3 pb-0">
+      <TableSection.Header className="flex-wrap gap-3">
         <TableSection.SearchAndFilter filters={filters} placeholder="Search truck, driver, trip, booking" />
       </TableSection.Header>
-      <TableSection.ActiveFilters exclude={['sortBy', 'sortOrder', 'view']} className="pb-3" />
+      <TableSection.ActiveFilters exclude={['sortBy', 'sortOrder', 'view']} className="-mt-2 pb-4" />
 
       {isLoading ? (
         <LegTable.Loading columns={6} rows={6} className="pt-4" />

@@ -61,7 +61,7 @@ export function RecordTableSection<T extends Row>({
 
   return (
     <TableSection>
-      <TableSection.Header className="flex-wrap gap-3 pb-0">
+      <TableSection.Header className="flex-wrap gap-3">
         <TableSection.SearchAndFilter filters={filters?.(setFilter) ?? []} placeholder={searchPlaceholder} />
         {(actions || onCreate) && (
           <TableSection.Actions>
@@ -74,7 +74,7 @@ export function RecordTableSection<T extends Row>({
           </TableSection.Actions>
         )}
       </TableSection.Header>
-      <TableSection.ActiveFilters exclude={hidden} className="pb-3" />
+      <TableSection.ActiveFilters exclude={hidden} className="-mt-2 pb-4" />
 
       {isLoading ? (
         <RecordTable.Loading columns={allHeaders.length} rows={6} className="pt-4" />

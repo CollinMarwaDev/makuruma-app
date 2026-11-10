@@ -72,7 +72,7 @@ export const BookingsTableSection: FC<BookingsTableSectionProps> = ({ bookings, 
 
   return (
     <TableSection>
-      <TableSection.Header className="flex-wrap gap-3 pb-0">
+      <TableSection.Header className="flex-wrap gap-3">
         <TableSection.SearchAndFilter filters={filters} placeholder="Search booking, client, truck, driver" />
         <TableSection.Actions>
           <Button variant="outline" className="flex items-center gap-2 py-2.5" onClick={() => actions.onCreate('return')}>
@@ -83,7 +83,7 @@ export const BookingsTableSection: FC<BookingsTableSectionProps> = ({ bookings, 
           </Button>
         </TableSection.Actions>
       </TableSection.Header>
-      <TableSection.ActiveFilters exclude={['sortBy', 'sortOrder']} className="pb-3" />
+      <TableSection.ActiveFilters exclude={['sortBy', 'sortOrder']} className="-mt-2 pb-4" />
 
       {isLoading ? (
         <BookingTable.Loading columns={7} rows={6} className="pt-4" />

@@ -36,7 +36,7 @@ export const ListParamsComponent = () => {
     return (
         <ComponentCard title="useListParams (search, filter, sort, paging)">
             <TableSection>
-                <TableSection.Header className="pb-0">
+                <TableSection.Header>
                     <TableSection.SearchAndFilter
                         placeholder="Search name or region"
                         filters={[
