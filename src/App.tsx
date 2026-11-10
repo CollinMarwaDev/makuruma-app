@@ -1,4 +1,8 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { ThemeProvider } from '~/global/providers/theme-provider'
+import { ConfirmationProvider } from '~/global/providers/confirmation'
 import { AuthProvider } from './context/AuthContext'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/Layout'
@@ -12,6 +16,7 @@ import Clients from './pages/Clients'
 import Vendors from './pages/Vendors'
 import Bookings from './pages/Bookings'
 import Tracking from './pages/Tracking'
+import TrackingStatuses from './pages/TrackingStatuses'
 import Expenses from './pages/Expenses'
 import Invoices from './pages/Invoices'
 import Assets from './pages/Assets'
@@ -19,6 +24,9 @@ import Trips from './pages/Trips'
 import Reports from './pages/Reports'
 import Reconciliation from './pages/Reconciliation'
 import Profile from './pages/Profile'
+
+// Loaded on demand so the kit's chart/demo code stays out of the main bundle.
+const ComponentsPlayground = lazy(() => import('~/pages/components-playground'))
 
 
 
@@ -39,6 +47,18 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
 
       <Route
+        path="/components/playground"
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <ComponentsPlayground />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/components-playground" element={<Navigate to="/components/playground" replace />} />
+
+      <Route
         element={
           <ProtectedRoute>
             <Layout />
@@ -49,6 +69,7 @@ function AppRoutes() {
 <Route path="/bookings" element={<Bookings />} />
 <Route path="/trips" element={<Trips />} />
 <Route path="/tracking" element={<Tracking />} />
+<Route path="/tracking/statuses" element={<TrackingStatuses />} />
 <Route path="/assets" element={<Assets />} />
 <Route path="/staff" element={<Staff />} />
 <Route path="/drivers" element={<Drivers />} />
@@ -68,11 +89,16 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <ConfirmationProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </ConfirmationProvider>
+      <Toaster position="top-right" />
+    </ThemeProvider>
   )
 }
 

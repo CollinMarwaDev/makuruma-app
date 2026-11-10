@@ -1,62 +1,79 @@
 import { useEffect, useState } from 'react'
-import type { Booking } from '../types/booking'
-import { fetchBookings, deleteBooking, downloadBookingAccessList } from '../services/bookingService'
-import BookingForm from '../components/BookingForm'
-import BookingTable from '../components/BookingTable'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Plus } from 'lucide-react'
+import type { Booking } from '~/types/booking'
+import { fetchBookings, deleteBooking, downloadBookingAccessList } from '~/services/bookingService'
+import BookingForm from '~/components/booking-form/booking-form'
+import { BookingHighlights } from '~/components/bookings/booking-highlights'
+import { BookingsTableSection } from '~/components/bookings/bookings-table-section'
+import Modal from '~/components/ui/Modal'
+import PageHeader from '~/global/components/page-header'
+import { ErrorFallback, GeneralErrorBoundary } from '~/global/components/error-boundary'
+import { useConfirmation } from '~/global/providers/confirmation'
+import { toast } from '~/global/utils/toast'
+
+const errorMessage = (err: unknown, fallback: string) => (err instanceof Error ? err.message : fallback)
 
 function Bookings() {
+  const confirm = useConfirmation()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [reloadTrigger, setReloadTrigger] = useState(0)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null)
   const [newDirection, setNewDirection] = useState<'go' | 'return'>('go')
+  const [sourceBooking, setSourceBooking] = useState<Booking | null>(null)
 
   useEffect(() => {
     let cancelled = false
-
-    async function load() {
-      if (!cancelled) { setLoading(true); setError(null) }
-      try {
-        const data = await fetchBookings()
-        if (!cancelled) setBookings(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load bookings')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    fetchBookings()
+      .then((data) => {
+        if (cancelled) return
+        setBookings(data)
+        setError(null)
+      })
+      .catch((err: unknown) => !cancelled && setError(err))
+      .finally(() => !cancelled && setLoading(false))
+    return () => {
+      cancelled = true
     }
-
-    load()
-    return () => { cancelled = true }
   }, [reloadTrigger])
 
-  function refresh() { setReloadTrigger((prev) => prev + 1) }
+  const refresh = () => setReloadTrigger((prev) => prev + 1)
 
-  function openAddModal(direction: 'go' | 'return') {
+  /** New booking, optionally copied from `source` (Copy & edit, or Return from a Go booking). */
+  function openAddModal(direction: 'go' | 'return', source: Booking | null = null) {
     setNewDirection(direction)
+    setSourceBooking(source)
     setEditingBooking(null)
     setIsModalOpen(true)
   }
 
   function openEditModal(booking: Booking) {
+    setSourceBooking(null)
     setEditingBooking(booking)
     setIsModalOpen(true)
   }
 
-  function handleSaved() { setIsModalOpen(false); refresh() }
+  function handleSaved() {
+    setIsModalOpen(false)
+    refresh()
+  }
 
   async function handleDelete(booking: Booking) {
-    if (!window.confirm(`Delete booking ${booking.booking_number}?`)) return
+    const ok = await confirm({
+      cancelText: 'Keep booking',
+      description: 'Its trucks are released (Go) or returned to "awaiting return" (Return). This cannot be undone.',
+      okayText: 'Delete booking',
+      title: `Delete booking ${booking.booking_number}?`,
+      type: 'error',
+    })
+    if (!ok) return
     try {
       await deleteBooking(booking.id)
+      toast.success(`Booking ${booking.booking_number} deleted`)
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete booking')
+      toast.error(errorMessage(err, 'Failed to delete booking'))
     }
   }
 
@@ -64,40 +81,57 @@ function Bookings() {
     try {
       await downloadBookingAccessList(booking)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Download failed')
+      toast.error(errorMessage(err, 'Download failed'))
     }
   }
 
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
-
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Bookings</h1>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => openAddModal('go')} className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity">
-            <Plus size={18} />
-            New Go Booking
-          </button>
-          <button onClick={() => openAddModal('return')} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2.5 rounded-lg font-medium ring-1 ring-border hover:bg-surface transition-colors">
-            <Plus size={18} />
-            New Return Booking
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen space-y-6 bg-background p-4 md:p-8">
+      <PageHeader
+        title="Bookings"
+        subtitle="Go and Return bookings, their trucks, tons and routes."
+        titleClassName="font-semibold tracking-tight text-foreground"
+        subTitleClassName="text-muted-foreground"
+      />
 
-      {loading ? (
-        <TableSkeleton columns={8} />
+      {error && !loading ? (
+        <ErrorFallback error={error} ctaLabel="Try again" ctaLink="/bookings" />
       ) : (
-        <BookingTable bookings={bookings} onEdit={openEditModal} onDelete={handleDelete} onDownload={handleDownload} />
+        <GeneralErrorBoundary>
+          <BookingHighlights bookings={bookings} isLoading={loading} />
+          <BookingsTableSection
+            bookings={bookings}
+            isLoading={loading}
+            onCreate={(direction) => openAddModal(direction)}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            onDownload={handleDownload}
+            onCopy={(booking) => openAddModal(booking.direction, booking)}
+            onCreateReturn={(booking) => openAddModal('return', booking)}
+          />
+        </GeneralErrorBoundary>
       )}
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingBooking ? `Edit Booking — ${editingBooking.booking_number}` : `New ${newDirection === 'go' ? 'Go' : 'Return'} Booking`}
+        size="wide"
+        title={
+          editingBooking
+            ? `Edit Booking — ${editingBooking.booking_number}`
+            : `New ${newDirection === 'go' ? 'Go' : 'Return'} Booking${sourceBooking ? ` (from ${sourceBooking.booking_number})` : ''}`
+        }
       >
-        <BookingForm booking={editingBooking} direction={newDirection} onSaved={handleSaved} />
+        <GeneralErrorBoundary>
+          <BookingForm
+            key={editingBooking?.id ?? `new-${newDirection}-${sourceBooking?.id ?? 'blank'}`}
+            booking={editingBooking}
+            direction={newDirection}
+            sourceBooking={sourceBooking}
+            onSaved={handleSaved}
+            onChanged={refresh}
+          />
+        </GeneralErrorBoundary>
       </Modal>
     </div>
   )

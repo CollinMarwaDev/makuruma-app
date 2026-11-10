@@ -1,121 +1,119 @@
-import type { TrackedTruck, Checkpoint, TrackingStatus } from '../types/tracking'
-import { apiClient } from './apiClient'
+import type { LegDateField, TrackingLeg, TrackingStatusOption } from '../types/tracking'
+import { apiClient, API_BASE_URL } from './apiClient'
 
-import { API_BASE_URL } from './apiClient'
-
-export async function fetchCheckpoints(): Promise<Checkpoint[]> {
-  return apiClient('/checkpoints')
-}
-
-export async function fetchTrackedTrucks(): Promise<TrackedTruck[]> {
-  return apiClient('/tracking')
-}
-
-export async function updateTrackingStatus(
-  truckId: number,
-  data: { current_location?: string; current_status: TrackingStatus }
-): Promise<TrackedTruck> {
-  return apiClient(`/tracking/${truckId}/status`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
-}
-
-export async function upsertMilestone(
-  truckId: number,
-  data: { checkpoint_id: number; arrival_at?: string; dispatch_at?: string }
-) {
-  return apiClient(`/tracking/${truckId}/milestones`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
-}
-
-export async function updateTripDates(
-  bookingTruckId: number,
-  data: {
-    loading_point_arrival_date?: string
-    loading_date?: string
-    loading_dispatch_date?: string
-    offloading_point_arrival_date?: string
-    offloading_date?: string
-  }
-) {
-  return apiClient(`/booking-trucks/${bookingTruckId}/dates`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
-}
-export async function uploadProofOfDelivery(bookingTruckId: number, file: File) {
+const authHeaders = (accept: string): HeadersInit => {
   const token = localStorage.getItem('auth_token')
+  return { Accept: accept, ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+}
+
+async function downloadBlob(path: string, accept: string, filename: string) {
+  const response = await fetch(`${API_BASE_URL}${path}`, { headers: authHeaders(accept) })
+  if (!response.ok) throw new Error('Download failed')
+  const url = window.URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+// --- Legs -------------------------------------------------------------------
+
+export async function fetchTrackingLegs(scope: 'active' | 'completed' | 'all' = 'all'): Promise<TrackingLeg[]> {
+  return apiClient(`/tracking?scope=${scope}`)
+}
+
+export async function fetchTrackingLeg(legId: number): Promise<TrackingLeg> {
+  return apiClient(`/tracking/${legId}`)
+}
+
+export async function updateLegStatus(
+  legId: number,
+  data: { current_location?: string; current_status: string; route?: string }
+): Promise<TrackingLeg> {
+  return apiClient(`/tracking/${legId}/status`, { body: JSON.stringify(data), method: 'PUT' })
+}
+
+export async function upsertLegMilestone(
+  legId: number,
+  data: { arrival_at?: string; checkpoint_id: number; dispatch_at?: string }
+): Promise<TrackingLeg> {
+  return apiClient(`/tracking/${legId}/milestones`, { body: JSON.stringify(data), method: 'POST' })
+}
+
+export async function updateLegDates(legId: number, data: Partial<Record<LegDateField, string>>): Promise<TrackingLeg> {
+  return apiClient(`/booking-trucks/${legId}/dates`, { body: JSON.stringify(data), method: 'PUT' })
+}
+
+// --- Proof of delivery (contract 2.2 D-5) -------------------------------------
+
+export async function uploadProofOfDelivery(legId: number, file: File) {
   const formData = new FormData()
   formData.append('document_type', 'POD')
   formData.append('attachment', file)
-
-  const response = await fetch(`${API_BASE_URL}/booking-trucks/${bookingTruckId}/documents`, {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+  const response = await fetch(`${API_BASE_URL}/booking-trucks/${legId}/documents`, {
     body: formData,
+    headers: authHeaders('application/json'),
+    method: 'POST',
   })
-
-  if (!response.ok) throw new Error('Failed to upload proof of delivery')
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'Failed to upload proof of delivery')
+  }
   return response.json()
 }
 
-export async function downloadTrackingReport(truck: TrackedTruck): Promise<void> {
-  const token = localStorage.getItem('auth_token')
-
-  const response = await fetch(`${API_BASE_URL}/tracking/${truck.id}/download`, {
-    headers: {
-      Accept: 'application/pdf',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  })
-
-  if (!response.ok) throw new Error('Failed to download tracking report')
-
-  const blob = await response.blob()
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `tracking-${truck.reg_no}.pdf`
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(url)
+export async function deleteProofOfDelivery(legId: number, documentId: number): Promise<void> {
+  return apiClient(`/booking-trucks/${legId}/documents/${documentId}`, { method: 'DELETE' })
 }
 
-export async function downloadTrackingExcel(filters: {
-  trip_status?: string
-  current_status?: string
-  client_id?: string
-  search?: string
-}): Promise<void> {
-  const token = localStorage.getItem('auth_token')
-  const params = new URLSearchParams()
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value) params.set(key, value)
-  })
+/** Opens an uploaded document in a new tab (the file needs the auth token, so it is fetched first). */
+export async function viewDocument(documentId: number): Promise<void> {
+  const preview = window.open('', '_blank')
+  const response = await fetch(`${API_BASE_URL}/documents/${documentId}/file`, { headers: authHeaders('*/*') })
+  if (!response.ok) {
+    preview?.close()
+    throw new Error('Could not open the file')
+  }
+  const url = window.URL.createObjectURL(await response.blob())
+  if (preview) preview.location.href = url
+  else window.open(url, '_blank')
+}
 
-  const response = await fetch(`${API_BASE_URL}/tracking/export-excel?${params.toString()}`, {
-    headers: {
-      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  })
+// --- Reports ------------------------------------------------------------------
 
-  if (!response.ok) throw new Error('Failed to export Excel')
+export async function downloadTrackingReport(leg: TrackingLeg): Promise<void> {
+  return downloadBlob(`/tracking/${leg.id}/download`, 'application/pdf', `tracking-${leg.truck.reg_no}-${leg.booking.booking_number}.pdf`)
+}
 
-  const blob = await response.blob()
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `tracking-export-${new Date().toISOString().slice(0, 10)}.xlsx`
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(url)
+export async function downloadTrackingExcel(): Promise<void> {
+  return downloadBlob(
+    '/tracking/export-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    `tracking-export-${new Date().toISOString().slice(0, 10)}.xlsx`
+  )
+}
+
+// --- Statuses (contract 2.2 D-4) ----------------------------------------------
+
+export async function fetchTrackingStatuses(): Promise<TrackingStatusOption[]> {
+  return apiClient('/tracking-statuses')
+}
+
+export async function createTrackingStatus(data: Pick<TrackingStatusOption, 'label' | 'color'>): Promise<TrackingStatusOption> {
+  return apiClient('/tracking-statuses', { body: JSON.stringify(data), method: 'POST' })
+}
+
+export async function updateTrackingStatus(
+  id: number,
+  data: Partial<Pick<TrackingStatusOption, 'label' | 'color' | 'is_active' | 'sort_order'>>
+): Promise<TrackingStatusOption> {
+  return apiClient(`/tracking-statuses/${id}`, { body: JSON.stringify(data), method: 'PUT' })
+}
+
+/** Deletes an unused custom status; a status still in use is deactivated instead (returned). */
+export async function deleteTrackingStatus(id: number): Promise<TrackingStatusOption | null> {
+  return apiClient(`/tracking-statuses/${id}`, { method: 'DELETE' })
 }

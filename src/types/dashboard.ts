@@ -22,16 +22,18 @@ export interface DashboardSummary {
     completed: number
     this_month: number
   }
-  tracking: {
-  pending: number
-  loading: number
-  in_transit: number
-  at_border: number
-  offloading: number
-  delayed: number
-  breakdown: number
-  completed: number
-}
+  /** Trucks per tracking status key. Fixed keys are always present; admin-added statuses appear as extra keys. */
+  tracking: Record<string, number> & {
+    pending: number
+    on_route_to_loading: number
+    loading: number
+    in_transit: number
+    at_border: number
+    offloading: number
+    delayed: number
+    breakdown: number
+    completed: number
+  }
   expenses: {
     pending_count: number
     pending_total: number

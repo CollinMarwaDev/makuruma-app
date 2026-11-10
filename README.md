@@ -1,75 +1,67 @@
-# React + TypeScript + Vite
+# Makuruma Logistics – Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript + Vite 8 + Tailwind CSS 4 single-page app for the Makuruma Logistics Management System. It talks to the Laravel API in `../makuruma-backend`.
 
-Currently, two official plugins are available:
+> Full first-time setup (PHP, MySQL, API, seeding): see [`../README.md`](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run
 
-## React Compiler
+This project uses **pnpm** (version pinned in `package.json` → `packageManager`). Enable it once with `corepack enable` (ships with Node 20+) or `brew install pnpm`. Do not use `npm install` — it would create a second lockfile.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm install          # after every pull that changes package.json
+pnpm dev          # http://localhost:5173  (API must be on http://127.0.0.1:8000)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Sign in with the seeded admin (`admin@makuruma.local` / `password`) or your own account.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Script | What it does |
+| --- | --- |
+| `pnpm dev` | Dev server with hot reload |
+| `pnpm typecheck` | Type-check only (`tsc -b`; silence = no errors) |
+| `pnpm build` | Type-check and production build to `dist/` |
+| `pnpm preview` | Serve the production build locally |
+| `pnpm lint` | ESLint |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Environment files:
+
+| File | Used by | Key |
+| --- | --- | --- |
+| `.env.development` | `pnpm dev` | `VITE_API_BASE_URL=http://127.0.0.1:8000/api` |
+| `.env.production` | `pnpm build` | production API URL |
+
+## Folder structure
 
 ```
+src/
+├── global/                     # design system shared by every screen
+│   ├── components/             # global components (button, modal, table, form-controls, …)
+│   ├── hooks/                  # global hooks (useFilePicker, useCountdown, useUploadFile, …)
+│   ├── utils/                  # cn, dates, strings, files, zod-common, toast, local-storage
+│   ├── providers/              # theme, confirmation dialog, dialog context
+│   ├── constants/              # brand colours for charts, country codes
+│   ├── styles/theme.css        # ALL colour tokens (light + dark) – change brand colours here
+│   └── types/                  # shared types (IconType, LabelWithValue, …)
+├── pages/                      # one file per route (Bookings.tsx, Tracking.tsx, …)
+│   └── components-playground/  # /components/playground – live catalogue of src/global
+├── components/                 # feature components used by pages (BookingForm, TrackingTable, …)
+├── services/                   # API calls (apiClient + one service per resource)
+├── types/                      # API data types per resource
+├── context/ hooks/ constants/ utils/   # app-level auth context and helpers
+├── App.tsx                     # routes
+└── index.css                   # Tailwind entry (imports global/styles/theme.css)
+```
+
+Imports use the `~/` alias for `src/` (e.g. `import { Button } from "~/global/components/button"`).
+
+## Design system
+
+- **Colours:** teal-blue primary `#2a7f88` (logo blue `#106880`), green success `#22a06b`, orange accent `#f8a13f`. Defined once as CSS variables in `src/global/styles/theme.css`, exposed as Tailwind tokens (`bg-primary`, `text-accent`, `bg-status-green-bg`, `border-outline`, `bg-surface`, …).
+- **Light + dark:** the `.dark` class on `<html>`; toggle in the sidebar (or on the playground). The choice is saved per browser; default is dark.
+- **Playground:** open **`/components/playground`** (signed in) to see every global component in both themes. When you add a component to `src/global/components`, add an example there.
+- **Toasts:** `import { toast } from "~/global/utils/toast"` → `toast.success("Saved")`.
+- **Confirm dialogs:** wrap with `ConfirmationProvider`, then `const confirm = useConfirmation(); if (await confirm({ title: "Delete POD?" })) …`.
+
+## Working with AI agents
+
+`AGENTS.md` (and `CLAUDE.md`) route agents to the project skills in `.agents/skills/` and the spec-driven workflow in `spec-driven/`.

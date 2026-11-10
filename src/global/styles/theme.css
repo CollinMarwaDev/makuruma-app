@@ -1,0 +1,239 @@
+/*
+ * Makuruma Logistics design tokens (light + dark).
+ * Brand: teal-blue #2a7f88 (logo blue #106880), green #22a06b, orange #f8a13f.
+ * Change colours here only; components use the token names (bg-primary, text-accent, …).
+ * Dark mode is the `.dark` class on <html> (see ThemeProvider). Numbered scales are
+ * inverted in dark mode so `bg-primary-50` stays a soft tint and `text-primary-950`
+ * stays the strongest text colour in both themes.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  /* brand */
+  --mk-primary: #2a7f88;
+  --mk-primary-foreground: #ffffff;
+  --mk-accent: #f8a13f;
+  --mk-accent-foreground: #1a1206;
+  --mk-success: #22a06b;
+  --mk-danger: #e5484d;
+  --mk-warning: #d98a1c;
+
+  --mk-primary-50: #eef8f9;  --mk-primary-100: #d6eef0; --mk-primary-200: #b0dde1;
+  --mk-primary-300: #7fc4cb; --mk-primary-400: #4aa4ad; --mk-primary-500: #2a7f88;
+  --mk-primary-600: #236b73; --mk-primary-700: #1f5a61; --mk-primary-800: #1d4a50;
+  --mk-primary-900: #1a3d42; --mk-primary-950: #0c2427;
+
+  /* logo blue */
+  --mk-secondary-50: #eaf6fa;  --mk-secondary-100: #cbe9f2; --mk-secondary-200: #9dd3e5;
+  --mk-secondary-300: #63b6d1; --mk-secondary-400: #2f97b6; --mk-secondary-500: #16809f;
+  --mk-secondary-600: #106880; --mk-secondary-700: #10566a; --mk-secondary-800: #124858;
+  --mk-secondary-900: #133d4b; --mk-secondary-950: #0a2631;
+
+  --mk-accent-50: #fff6eb;  --mk-accent-100: #feead1; --mk-accent-200: #fdd3a2;
+  --mk-accent-300: #fbb96b; --mk-accent-400: #f8a13f; --mk-accent-500: #f08a1c;
+  --mk-accent-600: #d46d12; --mk-accent-700: #b05212; --mk-accent-800: #8e4116;
+  --mk-accent-900: #743715; --mk-accent-950: #3f1a07;
+
+  --mk-green-50: #ecfbf3;  --mk-green-100: #d1f5e2; --mk-green-200: #a6eac8;
+  --mk-green-300: #6fd8a8; --mk-green-400: #3bbf86; --mk-green-500: #22a06b;
+  --mk-green-600: #178256; --mk-green-700: #156847; --mk-green-800: #14533a;
+  --mk-green-900: #124431; --mk-green-950: #08261b;
+
+  /* neutrals & surfaces */
+  --mk-background: #f4f7f8;
+  --mk-foreground: #0f1d24;
+  --mk-surface: #ffffff;
+  --mk-surface-2: #f7fafb;
+  --mk-surface-container: #e9f2f3;
+  --mk-faint: #f1f7f8;
+  --mk-container: #e2eef0;
+  --mk-outline: #d9e3e6;
+  --mk-muted: #eef2f4;
+  --mk-muted-foreground: #5f6f7a;
+  --mk-input: #d9e3e6;
+  --mk-input-fields: #f8fafb;
+  --mk-neutral-button: #e8eef0;
+
+  /* status (pc = primary/text colour, bg = soft background) */
+  --mk-status-red: #e5484d;    --mk-status-red-pc: #c9343a;    --mk-status-red-bg: #fdecec;
+  --mk-status-yellow: #f5a524; --mk-status-yellow-pc: #b36b00; --mk-status-yellow-bg: #fff4e0;
+  --mk-status-green: #22a06b;  --mk-status-green-pc: #178256;  --mk-status-green-bg: #e6f7ef;
+  --mk-status-blue: #16809f;   --mk-status-blue-pc: #106880;   --mk-status-blue-bg: #e5f3f8;
+  --mk-status-grey: #8a96a0;   --mk-status-grey-pc: #56636d;   --mk-status-grey-bg: #eef1f3;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --mk-primary: #2f8e98;
+  --mk-accent-foreground: #0d0d0f;
+
+  --mk-primary-50: #0f2427;  --mk-primary-100: #133136; --mk-primary-200: #1a434a;
+  --mk-primary-300: #22575f; --mk-primary-400: #2a6f78; --mk-primary-500: #2f8e98;
+  --mk-primary-600: #4aa4ad; --mk-primary-700: #7fc4cb; --mk-primary-800: #b0dde1;
+  --mk-primary-900: #d6eef0; --mk-primary-950: #f1f1f4;
+
+  --mk-secondary-50: #0b1f27;  --mk-secondary-100: #102b36; --mk-secondary-200: #133d4b;
+  --mk-secondary-300: #124858; --mk-secondary-400: #10566a; --mk-secondary-500: #16809f;
+  --mk-secondary-600: #2f97b6; --mk-secondary-700: #63b6d1; --mk-secondary-800: #9dd3e5;
+  --mk-secondary-900: #cbe9f2; --mk-secondary-950: #eaf6fa;
+
+  --mk-accent-50: #2a1a08;  --mk-accent-100: #3a240c;
+
+  --mk-green-50: #0b2219;  --mk-green-100: #0f2f22;
+
+  --mk-background: #0a0a0c;
+  --mk-foreground: #f1f1f4;
+  --mk-surface: #171719;
+  --mk-surface-2: #131316;
+  --mk-surface-container: #1f2124;
+  --mk-faint: #1a1c1f;
+  --mk-container: #202326;
+  --mk-outline: #2a2c30;
+  --mk-muted: #262629;
+  --mk-muted-foreground: #97989d;
+  --mk-input: #2a2c30;
+  --mk-input-fields: #131316;
+  --mk-neutral-button: #262629;
+
+  --mk-status-red-pc: #ff6b70;    --mk-status-red-bg: #3a1214;
+  --mk-status-yellow-pc: #f8a13f; --mk-status-yellow-bg: #35240c;
+  --mk-status-green-pc: #3bbf86;  --mk-status-green-bg: #0f2a1e;
+  --mk-status-blue-pc: #63b6d1;   --mk-status-blue-bg: #0f2a35;
+  --mk-status-grey-pc: #a3acb3;   --mk-status-grey-bg: #222427;
+}
+
+@theme inline {
+  /* app-wide tokens (existing pages) */
+  --color-background: var(--mk-background);
+  --color-foreground: var(--mk-foreground);
+  --color-card: var(--mk-surface);
+  --color-card-foreground: var(--mk-foreground);
+  --color-popover: var(--mk-surface);
+  --color-popover-foreground: var(--mk-foreground);
+  --color-primary: var(--mk-primary);
+  --color-primary-foreground: var(--mk-primary-foreground);
+  --color-secondary: var(--mk-neutral-button);
+  --color-secondary-foreground: var(--mk-foreground);
+  --color-muted: var(--mk-muted);
+  --color-muted-foreground: var(--mk-muted-foreground);
+  --color-accent: var(--mk-accent);
+  --color-accent-foreground: var(--mk-accent-foreground);
+  --color-destructive: var(--mk-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-danger: var(--mk-danger);
+  --color-success: var(--mk-success);
+  --color-warning: var(--mk-warning);
+  --color-border: var(--mk-outline);
+  --color-input: var(--mk-input);
+  --color-ring: var(--mk-primary);
+  --color-brand: var(--mk-primary);
+  --color-brand-foreground: var(--mk-primary-foreground);
+  --color-warn: var(--mk-accent);
+  --color-warn-foreground: var(--mk-accent-foreground);
+  --color-surface: var(--mk-surface);
+  --color-surface-2: var(--mk-surface-2);
+  --color-hairline: var(--mk-outline);
+
+  /* global component kit tokens */
+  --color-outline: var(--mk-outline);
+  --color-surface-container: var(--mk-surface-container);
+  --color-surface-input: var(--mk-input-fields);
+  --color-surface-porcelain: var(--mk-surface-2);
+  --color-faint: var(--mk-faint);
+  --color-container: var(--mk-container);
+  --color-faded-container: var(--mk-faint);
+  --color-palette-container: var(--mk-container);
+  --color-input-fields: var(--mk-input-fields);
+  --color-input-field: var(--mk-input-fields);
+  --color-input-basic: var(--mk-input-fields);
+  --color-input-with-prefix: var(--mk-input-fields);
+  --color-action: var(--mk-primary);
+  --color-icon: var(--mk-muted-foreground);
+  --color-cta-link: var(--mk-primary);
+  --color-dark-green: var(--mk-green-700);
+  --color-neutral-550: var(--mk-muted-foreground);
+
+  --color-primary-50: var(--mk-primary-50);   --color-primary-100: var(--mk-primary-100);
+  --color-primary-200: var(--mk-primary-200); --color-primary-300: var(--mk-primary-300);
+  --color-primary-400: var(--mk-primary-400); --color-primary-500: var(--mk-primary-500);
+  --color-primary-600: var(--mk-primary-600); --color-primary-700: var(--mk-primary-700);
+  --color-primary-800: var(--mk-primary-800); --color-primary-900: var(--mk-primary-900);
+  --color-primary-950: var(--mk-primary-950);
+
+  /* "shades" = neutral tints of primary used for borders/dividers in the kit */
+  --color-primary-shades-50: var(--mk-faint);   --color-primary-shades-100: var(--mk-outline);
+  --color-primary-shades-200: var(--mk-outline); --color-primary-shades-300: var(--mk-primary-200);
+  --color-primary-shades-400: var(--mk-primary-300); --color-primary-shades-500: var(--mk-primary-400);
+  --color-primary-shades-600: var(--mk-primary-600); --color-primary-shades-700: var(--mk-primary-700);
+  --color-primary-shades-800: var(--mk-primary-800); --color-primary-shades-900: var(--mk-primary-900);
+  --color-primary-shades-950: var(--mk-primary-950);
+
+  --color-secondary-50: var(--mk-secondary-50);   --color-secondary-100: var(--mk-secondary-100);
+  --color-secondary-200: var(--mk-secondary-200); --color-secondary-300: var(--mk-secondary-300);
+  --color-secondary-400: var(--mk-secondary-400); --color-secondary-500: var(--mk-secondary-500);
+  --color-secondary-600: var(--mk-secondary-600); --color-secondary-700: var(--mk-secondary-700);
+  --color-secondary-800: var(--mk-secondary-800); --color-secondary-900: var(--mk-secondary-900);
+  --color-secondary-950: var(--mk-secondary-950);
+
+  --color-accent-50: var(--mk-accent-50);   --color-accent-100: var(--mk-accent-100);
+  --color-accent-200: var(--mk-accent-200); --color-accent-300: var(--mk-accent-300);
+  --color-accent-400: var(--mk-accent-400); --color-accent-500: var(--mk-accent-500);
+  --color-accent-600: var(--mk-accent-600); --color-accent-700: var(--mk-accent-700);
+  --color-accent-800: var(--mk-accent-800); --color-accent-900: var(--mk-accent-900);
+  --color-accent-950: var(--mk-accent-950);
+
+
+  --color-status-red: var(--mk-status-red);       --color-status-red-pc: var(--mk-status-red-pc);       --color-status-red-bg: var(--mk-status-red-bg);
+  --color-status-yellow: var(--mk-status-yellow); --color-status-yellow-pc: var(--mk-status-yellow-pc); --color-status-yellow-bg: var(--mk-status-yellow-bg);
+  --color-status-green: var(--mk-status-green);   --color-status-green-pc: var(--mk-status-green-pc);   --color-status-green-bg: var(--mk-status-green-bg);
+  --color-status-blue: var(--mk-status-blue);     --color-status-blue-pc: var(--mk-status-blue-pc);     --color-status-blue-bg: var(--mk-status-blue-bg);
+  --color-status-grey: var(--mk-status-grey);     --color-status-grey-pc: var(--mk-status-grey-pc);     --color-status-grey-bg: var(--mk-status-grey-bg);
+
+  --radius-sm: calc(0.625rem - 4px);
+  --radius-md: calc(0.625rem - 2px);
+  --radius-lg: 0.625rem;
+  --radius-xl: calc(0.625rem + 4px);
+  --radius-2xl: calc(0.625rem + 8px);
+}
+
+/* Kit helper: flex + centred on both axes (override with justify-*). */
+@utility center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Kit helper: row with items pushed to both ends, vertically centred. */
+@utility items-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Kit helper: small rounded pill. */
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Kit loaders (SkeletonLoader) use `animate-shimmer`. */
+@theme {
+  --animate-shimmer: shimmer 1.6s infinite;
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+}
+
+/* Kit form controls add `input-error` to invalid inputs. */
+@utility input-error {
+  --tw-ring-color: var(--mk-status-red-pc);
+  border-color: color-mix(in srgb, var(--mk-status-red-pc) 40%, transparent);
+}

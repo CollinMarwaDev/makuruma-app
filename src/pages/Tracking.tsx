@@ -1,236 +1,113 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { TrackedTruck, TrackingStatus } from '../types/tracking'
-import { fetchTrackedTrucks, downloadTrackingReport, downloadTrackingExcel } from '../services/trackingService'
-import { fetchClients } from '../services/clientService'
-import type { Client } from '../types/partner'
-import { exportTrackingCsv } from '../utils/csvExports'
-import { TRACKING_STATUS_OPTIONS } from '../constants/trackingStatus'
-import TrackingTable from '../components/TrackingTable'
-import TrackingDetailForm from '../components/TrackingDetailForm'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Download, Search, FileSpreadsheet } from 'lucide-react'
-
-type TripStatusTab = 'all' | 'go' | 'return' | 'off_duty'
+import { useEffect, useState } from 'react'
+import { ArrowDownTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
+import type { TrackingLeg } from '~/types/tracking'
+import { downloadTrackingExcel, downloadTrackingReport, fetchTrackingLegs } from '~/services/trackingService'
+import { useAuth } from '~/hooks/useAuth'
+import { exportTrackingCsv } from '~/utils/csvExports'
+import { TrackingLegForm } from '~/components/tracking/tracking-leg-form'
+import { TrackingTableSection } from '~/components/tracking/tracking-table-section'
+import { useTrackingList } from '~/components/tracking/use-tracking-list'
+import { useTrackingStatuses } from '~/components/tracking/use-tracking-statuses'
+import { Button, ButtonLink } from '~/global/components/button'
+import { ErrorFallback, GeneralErrorBoundary } from '~/global/components/error-boundary'
+import PageHeader from '~/global/components/page-header'
+import { SlideOver } from '~/global/components/slider-over/slide-over'
+import { useSearchParamsState } from '~/global/utils/r3/hooks'
+import { getErrorMessage } from '~/global/utils/r3/utils'
+import { toast } from '~/global/utils/toast'
 
 function Tracking() {
-  const [trucks, setTrucks] = useState<TrackedTruck[]>([])
+  const { user } = useAuth()
+  const { statusLabel } = useTrackingStatuses()
+  const [legs, setLegs] = useState<TrackingLeg[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [selectedTruck, setSelectedTruck] = useState<TrackedTruck | null>(null)
-
-  const [tripStatusTab, setTripStatusTab] = useState<TripStatusTab>('all')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<TrackingStatus | 'all'>('all')
-  const [clientFilter, setClientFilter] = useState('')
-  const [bookingNumberFilter, setBookingNumberFilter] = useState('')
-  const [clients, setClients] = useState<Client[]>([])
-  const [isExporting, setIsExporting] = useState(false)
   const [isExportingExcel, setIsExportingExcel] = useState(false)
-
-  useEffect(() => {
-    fetchClients().then(setClients).catch(() => setClients([]))
-  }, [])
+  /** The open leg lives in the URL (`?leg=`) so a tracking detail can be linked and survives a refresh. */
+  const [params, setParams] = useSearchParamsState<{ leg?: string }>()
+  const openLegId = params.leg ? Number(params.leg) : null
+  const { filtered } = useTrackingList(legs)
 
   useEffect(() => {
     let cancelled = false
-
-    async function load() {
-      if (!cancelled) {
-        setLoading(true)
+    fetchTrackingLegs('all')
+      .then((data) => {
+        if (cancelled) return
+        setLegs(data)
         setError(null)
-      }
-      try {
-        const data = await fetchTrackedTrucks()
-        if (!cancelled) {
-          setTrucks(data)
-          if (selectedTruck) {
-            const refreshed = data.find((t) => t.id === selectedTruck.id)
-            if (refreshed) setSelectedTruck(refreshed)
-          }
-        }
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load tracking data')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
+      })
+      .catch((err: unknown) => !cancelled && setError(err))
+      .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reloadTrigger])
 
-  const tabCounts = useMemo(() => {
-    return {
-      all: trucks.length,
-      go: trucks.filter((t) => t.trip_status === 'go').length,
-      return: trucks.filter((t) => t.trip_status === 'return').length,
-      off_duty: trucks.filter((t) => t.trip_status === 'off_duty').length,
-    }
-  }, [trucks])
+  const refresh = () => setReloadTrigger((prev) => prev + 1)
+  const openLeg = (leg: TrackingLeg | null) => setParams({ leg: leg ? String(leg.id) : undefined })
 
-  const filteredTrucks = useMemo(() => {
-    return trucks.filter((truck) => {
-      const matchesTab = tripStatusTab === 'all' || truck.trip_status === tripStatusTab
-      const matchesStatus = statusFilter === 'all' || truck.current_status === statusFilter
-      const recentBooking = truck.booking_trucks?.[0]
-      const matchesClient = !clientFilter || recentBooking?.booking.client?.id.toString() === clientFilter
-      const matchesBookingNumber =
-        !bookingNumberFilter ||
-        (recentBooking?.booking.booking_number?.toLowerCase().includes(bookingNumberFilter.toLowerCase()) ?? false)
-      const search = searchTerm.trim().toLowerCase()
-      const matchesSearch =
-        !search ||
-        truck.reg_no.toLowerCase().includes(search) ||
-        (truck.driver?.full_name.toLowerCase().includes(search) ?? false) ||
-        (recentBooking?.trip?.trip_code.toLowerCase().includes(search) ?? false)
-
-      return matchesTab && matchesStatus && matchesClient && matchesBookingNumber && matchesSearch
-    })
-  }, [trucks, searchTerm, statusFilter, clientFilter, bookingNumberFilter, tripStatusTab])
-
-  function refresh() {
-    setReloadTrigger((prev) => prev + 1)
-  }
-
-  async function handleDownloadReport(truck: TrackedTruck) {
+  async function handleDownload(leg: TrackingLeg) {
     try {
-      await downloadTrackingReport(truck)
+      await downloadTrackingReport(leg)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Download failed')
-    }
-  }
-
-  function handleExportCsv() {
-    setIsExporting(true)
-    try {
-      exportTrackingCsv(filteredTrucks)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Export failed')
-    } finally {
-      setIsExporting(false)
+      toast.error(getErrorMessage(err))
     }
   }
 
   async function handleExportExcel() {
     setIsExportingExcel(true)
     try {
-      await downloadTrackingExcel({
-        trip_status: tripStatusTab,
-        current_status: statusFilter,
-        client_id: clientFilter,
-        search: searchTerm,
-      })
+      await downloadTrackingExcel()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Excel export failed')
+      toast.error(getErrorMessage(err))
     } finally {
       setIsExportingExcel(false)
     }
   }
 
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
-
-  const tabs: { value: TripStatusTab; label: string }[] = [
-    { value: 'all', label: `All Trucks (${tabCounts.all})` },
-    { value: 'go', label: `Go Trucks (${tabCounts.go})` },
-    { value: 'return', label: `Return Trucks (${tabCounts.return})` },
-    { value: 'off_duty', label: `Off Duty (${tabCounts.off_duty})` },
-  ]
-
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tracking</h1>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={handleExportCsv}
-            disabled={isExporting || filteredTrucks.length === 0}
-            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2.5 rounded-lg font-medium ring-1 ring-border hover:bg-surface transition-colors disabled:opacity-50"
-          >
-            <Download size={18} />
-            {isExporting ? 'Exporting...' : `Export CSV ${filteredTrucks.length > 0 ? `(${filteredTrucks.length})` : ''}`}
-          </button>
-          <button
-            onClick={handleExportExcel}
-            disabled={isExportingExcel}
-            className="flex items-center gap-2 bg-secondary text-secondary-foreground px-4 py-2.5 rounded-lg font-medium ring-1 ring-border hover:bg-surface transition-colors disabled:opacity-50"
-          >
-            <FileSpreadsheet size={18} />
-            {isExportingExcel ? 'Exporting...' : 'Export Excel'}
-          </button>
-        </div>
-      </div>
-      <p className="text-sm text-muted-foreground mb-4">Live status and checkpoint milestones for every truck in your fleet.</p>
-
-      <div className="flex gap-2 mb-4 bg-surface-2 rounded-lg p-1 w-fit overflow-x-auto ring-1 ring-white/5">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setTripStatusTab(tab.value)}
-            className={`px-4 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              tripStatusTab === tab.value ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by truck, driver, or trip code..."
-            className="w-full bg-secondary ring-1 ring-border rounded-lg pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand"
-          />
-        </div>
-        <input
-          type="text"
-          value={bookingNumberFilter}
-          onChange={(e) => setBookingNumberFilter(e.target.value)}
-          placeholder="Filter by Booking No..."
-          className="bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+    <div className="min-h-screen space-y-6 bg-background p-4 md:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader
+          title="Tracking"
+          subtitle="Status, border route, checkpoints and POD for every Go and Return leg."
+          titleClassName="font-semibold tracking-tight text-foreground"
+          subTitleClassName="text-muted-foreground"
         />
-        <select
-          value={clientFilter}
-          onChange={(e) => setClientFilter(e.target.value)}
-          className="bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground"
-        >
-          <option value="">All Clients</option>
-          {clients.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as TrackingStatus | 'all')}
-          className="bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground"
-        >
-          <option value="all">All Statuses</option>
-          {TRACKING_STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-2">
+          {user?.role?.slug === 'admin' && (
+            <ButtonLink to="/tracking/statuses" variant="text" className="px-4">
+              <Cog6ToothIcon className="size-4" /> Manage statuses
+            </ButtonLink>
+          )}
+          <Button variant="outline" disabled={filtered.length === 0} onClick={() => exportTrackingCsv(filtered, statusLabel)} className="px-4">
+            <ArrowDownTrayIcon className="size-4" /> Export CSV ({filtered.length})
+          </Button>
+          <Button variant="outline" loading={isExportingExcel} loadingText="Exporting…" onClick={() => void handleExportExcel()} className="px-4">
+            <TableCellsIcon className="size-4" /> Export Excel
+          </Button>
+        </div>
       </div>
 
-      {loading ? (
-        <TableSkeleton columns={14} />
+      {error && !loading ? (
+        <ErrorFallback error={error} ctaLabel="Try again" ctaLink="/tracking" />
       ) : (
-        <TrackingTable trucks={filteredTrucks} onView={setSelectedTruck} onDownload={handleDownloadReport} />
+        <GeneralErrorBoundary>
+          <TrackingTableSection legs={legs} isLoading={loading} onOpen={openLeg} onDownload={handleDownload} />
+        </GeneralErrorBoundary>
       )}
 
-      <Modal
-        isOpen={!!selectedTruck}
-        onClose={() => setSelectedTruck(null)}
-        title={selectedTruck ? `Tracking — ${selectedTruck.reg_no}` : ''}
-      >
-        {selectedTruck && <TrackingDetailForm truck={selectedTruck} onSaved={refresh} />}
-      </Modal>
+      <SlideOver open={openLegId !== null} onClose={() => openLeg(null)}>
+        <SlideOver.Panel size="3xl" className="max-w-[calc(100vw-2.5rem)]">
+          <SlideOver.Header title="Update tracking" />
+          <SlideOver.Content className="space-y-4">
+            <GeneralErrorBoundary>
+              {openLegId !== null && <TrackingLegForm key={openLegId} legId={openLegId} onChanged={refresh} />}
+            </GeneralErrorBoundary>
+          </SlideOver.Content>
+        </SlideOver.Panel>
+      </SlideOver>
     </div>
   )
 }

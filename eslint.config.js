@@ -19,4 +19,15 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Global component kit ported from the iPF/Notify design system. Its hooks predate the
+    // React Compiler lint rules; keep them visible as warnings and fix when a file is touched.
+    files: ['src/global/**/*.{ts,tsx}', 'src/pages/components-playground/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/incompatible-library': 'off',
+    },
+  },
 ])

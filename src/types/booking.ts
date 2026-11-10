@@ -11,6 +11,9 @@ export interface BookingTruck {
   capacity: string | null
   cargo: string | null
   rate: string | null
+  loading_point: string | null
+  offloading_point: string | null
+  eta: string | null
   loading_point_arrival_date: string | null
   loading_date: string | null
   loading_dispatch_date: string | null
@@ -34,6 +37,7 @@ export interface Booking {
   loading_point: string | null
   offloading_point: string | null
   description: string | null
+  source_booking: { id: number; booking_number: string; direction: 'go' | 'return' } | null
   creator: { id: number; name: string }
   booking_trucks: BookingTruck[]
   created_at: string
@@ -42,4 +46,6 @@ export interface Booking {
 export interface EligibleTruck extends Truck {
   trailer: Trailer | null
   driver: Driver | null
+  /** False when the truck has no trailer or driver (contract 2.1 B-9). */
+  is_bookable?: boolean
 }

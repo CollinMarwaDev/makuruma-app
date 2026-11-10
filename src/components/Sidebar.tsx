@@ -6,6 +6,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import logo from '../assets/logo.png'
+import { ThemeToggle } from '~/global/components/theme-toggle'
+import { NotificationBell } from '~/components/notifications/notification-bell'
 
 const primaryNavItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -100,6 +102,14 @@ function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileClose }: Sidebar
             <UserCog size={16} className="mx-auto text-muted-foreground" />
           </span>
         </NavLink>
+        <NotificationBell
+          showLabel={!isCollapsed}
+          className={`mb-1 w-full ${isCollapsed ? 'md:justify-center' : ''}`}
+        />
+        <ThemeToggle
+          showLabel={!isCollapsed}
+          className={`mb-1 w-full ${isCollapsed ? 'md:justify-center' : ''}`}
+        />
         <button
           onClick={() => {
             onMobileClose()

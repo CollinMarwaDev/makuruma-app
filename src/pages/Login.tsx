@@ -1,33 +1,12 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import PasswordInput from '../components/ui/PasswordInput'
 import logo from '../assets/logo.png'
 import bgLogin from '../assets/bg-login.png'
+import { Button } from '~/global/components/button'
+import { RenderFormField } from '~/global/components/form-controls/render-form-field'
+import { ModalFormError } from '~/global/components/modal/modal-form-error'
+import { useManageLoginForm } from '~/components/login/use-manage-login-form'
 
 function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const { login } = useAuth()
-  const navigate = useNavigate()
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setIsSubmitting(true)
-
-    try {
-      await login({ email, password })
-      navigate('/')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const { fields, isSubmitting, onSubmit, serverError } = useManageLoginForm()
 
   return (
     <div
@@ -41,47 +20,21 @@ function Login() {
           <img src={logo} alt="Makuruma Logistics" className="h-16" />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-card rounded-xl ring-1 ring-white/10 shadow-xl p-4 md:p-8"
-        >
-          <h1 className="text-xl font-semibold text-foreground mb-1">Welcome back</h1>
-          <p className="text-sm text-muted-foreground mb-6">Sign in to manage your fleet</p>
+        <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl bg-surface p-4 shadow-xl ring-1 ring-border md:p-8">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground">Welcome back</h1>
+            <p className="text-sm text-muted-foreground">Sign in to manage your fleet</p>
+          </div>
 
-          {error && (
-            <div className="bg-destructive/10 text-destructive text-sm rounded-lg p-3 mb-4 ring-1 ring-destructive/20">
-              {error}
-            </div>
-          )}
+          <ModalFormError message={serverError} className="mt-0" />
 
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 mb-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
-          />
+          {fields.map((field) => (
+            <RenderFormField key={field.name} {...field} />
+          ))}
 
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Password
-          </label>
-          <PasswordInput
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="mb-6"
-          />
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-brand text-brand-foreground py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {isSubmitting ? 'Logging in...' : 'Log In'}
-          </button>
+          <Button type="submit" className="w-full" loading={isSubmitting} loadingText="Logging in…">
+            Log In
+          </Button>
         </form>
       </div>
     </div>

@@ -1,5 +1,4 @@
-import type { TrackedTruck } from '../types/tracking'
-import { TRACKING_STATUS_OPTIONS } from '../constants/trackingStatus'
+import type { TrackingLeg } from '../types/tracking'
 
 function escapeCsvCell(value: string): string {
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {
@@ -8,35 +7,36 @@ function escapeCsvCell(value: string): string {
   return value
 }
 
-export function exportTrackingCsv(trucks: TrackedTruck[]) {
+export function exportTrackingCsv(legs: TrackingLeg[], statusLabel: (key: string) => string) {
   const headers = [
-    'Trip Code', 'Truck', 'Trailer', 'Driver', 'Driver Contact',
-    'Current Location', 'Current Status',
+    'Trip Code', 'Booking', 'Direction', 'Truck', 'Trailer', 'Driver', 'Driver Contact',
+    'Current Location', 'Current Status', 'Border Route',
     'Loading Point', 'Loading Arrival', 'Loading Date',
-    'Offloading Point', 'Dispatch', 'Offloading Arrival', 'Offloading Date',
+    'Offloading Point', 'Dispatch', 'Offloading Arrival', 'Offloading Date', 'POD',
   ]
 
-  const rows = trucks.map((truck) => {
-    const statusLabel = TRACKING_STATUS_OPTIONS.find((o) => o.value === truck.current_status)?.label ?? truck.current_status
-    const recentBooking = truck.booking_trucks?.[0]
-
-    return [
-      recentBooking?.trip?.trip_code ?? '',
-      truck.reg_no,
-      truck.trailer?.reg_no ?? '',
-      truck.driver?.full_name ?? '',
-      truck.driver?.phone ?? '',
-      truck.current_location ?? '',
-      statusLabel,
-      recentBooking?.booking.loading_point ?? '',
-      recentBooking?.loading_point_arrival_date?.slice(0, 10) ?? '',
-      recentBooking?.loading_date?.slice(0, 10) ?? '',
-      recentBooking?.booking.offloading_point ?? '',
-      recentBooking?.loading_dispatch_date?.slice(0, 10) ?? '',
-      recentBooking?.offloading_point_arrival_date?.slice(0, 10) ?? '',
-      recentBooking?.offloading_date?.slice(0, 10) ?? '',
+  const rows = legs.map((leg) =>
+    [
+      leg.trip?.trip_code ?? '',
+      leg.booking.booking_number,
+      leg.booking.direction,
+      leg.truck.reg_no,
+      leg.trailer?.reg_no ?? '',
+      leg.driver?.full_name ?? '',
+      leg.driver?.phone ?? '',
+      leg.current_location ?? '',
+      statusLabel(leg.current_status),
+      leg.route,
+      leg.loading_point ?? '',
+      leg.loading_point_arrival_date?.slice(0, 10) ?? '',
+      leg.loading_date?.slice(0, 10) ?? '',
+      leg.offloading_point ?? '',
+      leg.loading_dispatch_date?.slice(0, 10) ?? '',
+      leg.offloading_point_arrival_date?.slice(0, 10) ?? '',
+      leg.offloading_date?.slice(0, 10) ?? '',
+      leg.documents.some((d) => d.document_type === 'POD') ? 'Uploaded' : leg.pod_overdue ? 'Overdue' : 'Pending',
     ].map((cell) => escapeCsvCell(String(cell)))
-  })
+  )
 
   const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })

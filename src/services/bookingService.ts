@@ -3,30 +3,27 @@ import { apiClient } from './apiClient'
 
 import { API_BASE_URL } from './apiClient'
 
+/** Per-truck booking details (contract 2.1: these can differ between trucks). */
+export interface TruckDetails {
+  tons?: string
+  cargo?: string
+  rate?: string
+  loading_point?: string
+  offloading_point?: string
+  eta?: string
+}
+
 export interface CreateBookingData {
   direction: 'go' | 'return'
   client_id: string
-  eta?: string
-  location?: string
-  loading_point?: string
-  offloading_point?: string
+  source_booking_id?: number
   description?: string
-  truck_ids: string[]
-}
-
-export interface TruckDetailInput {
-  booking_truck_id: string
-  cargo?: string
-  rate?: string
+  trucks: (TruckDetails & { truck_id: number })[]
 }
 
 export interface UpdateBookingData {
-  eta?: string
-  location?: string
-  loading_point?: string
-  offloading_point?: string
   description?: string
-  trucks: TruckDetailInput[]
+  trucks: (TruckDetails & { booking_truck_id: number })[]
 }
 
 export async function fetchBookings(): Promise<Booking[]> {
@@ -48,6 +45,14 @@ export async function updateBooking(id: number, data: UpdateBookingData): Promis
 export async function deleteBooking(id: number): Promise<void> {
   return apiClient(`/bookings/${id}`, { method: 'DELETE' })
 }
+export async function addTruckToBooking(bookingId: number, data: TruckDetails & { truck_id: number }): Promise<Booking> {
+  return apiClient(`/bookings/${bookingId}/trucks`, { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function swapBookingTruck(bookingId: number, bookingTruckId: number, truckId: number): Promise<Booking> {
+  return apiClient(`/bookings/${bookingId}/trucks/${bookingTruckId}`, { method: 'PUT', body: JSON.stringify({ truck_id: truckId }) })
+}
+
 export async function removeTruckFromBooking(bookingId: number, bookingTruckId: number): Promise<void> {
   return apiClient(`/bookings/${bookingId}/trucks/${bookingTruckId}`, { method: 'DELETE' })
 }
