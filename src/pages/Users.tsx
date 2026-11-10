@@ -1,128 +1,44 @@
-import { useEffect, useState } from 'react'
-import type { UserRecord } from '../types/user'
-import { fetchUsers, deleteUser, resetUserPassword } from '../services/userService'
-import { useAuth } from '../hooks/useAuth'
-import UserForm from '../components/UserForm'
-import UserTable from '../components/UserTable'
-import Modal from '../components/ui/Modal'
-import { Plus } from 'lucide-react'
-import TableSkeleton from '../components/ui/TableSkeleton'
+import type { UserRecord } from '~/types/user'
+import { deleteUser, fetchUsers, resetUserPassword } from '~/services/userService'
+import { useAuth } from '~/hooks/useAuth'
+import UserForm from '~/components/UserForm'
+import { CrudListPage } from '~/components/common/crud-list-page'
+import { useConfirmAction } from '~/components/common/use-confirm-action'
+import { UserDetails } from '~/components/users/user-details'
+import { UsersTableSection } from '~/components/users/users-table-section'
+import { Button } from '~/global/components/button'
 
 function Users() {
   const { user: currentUser } = useAuth()
-  const [users, setUsers] = useState<UserRecord[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadTrigger, setReloadTrigger] = useState(0)
+  const confirmAction = useConfirmAction()
+  const isAdmin = currentUser?.role?.slug === 'admin'
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<UserRecord | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadUsers() {
-      if (!cancelled) {
-        setLoading(true)
-        setError(null)
-      }
-
-      try {
-        const data = await fetchUsers()
-        if (!cancelled) setUsers(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load users')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    loadUsers()
-
-    return () => {
-      cancelled = true
-    }
-  }, [reloadTrigger])
-
-  function refresh() {
-    setReloadTrigger((prev) => prev + 1)
-  }
-
-  function openAddModal() {
-    setEditingUser(null)
-    setIsModalOpen(true)
-  }
-
-  function openEditModal(user: UserRecord) {
-    setEditingUser(user)
-    setIsModalOpen(true)
-  }
-
-  function handleSaved() {
-    setIsModalOpen(false)
-    refresh()
-  }
-
-  async function handleDelete(user: UserRecord) {
-    const confirmed = window.confirm(`Delete user ${user.name}? This can't be undone.`)
-    if (!confirmed) return
-
-    try {
-      await deleteUser(user.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete user')
-    }
-  }
-
-  async function handleResetPassword(user: UserRecord) {
-    const confirmed = window.confirm(`Reset this user's password to the default? They'll need to change it after logging in.`)
-    if (!confirmed) return
-
-    try {
-      const result = await resetUserPassword(user.id)
-      alert(result?.message || `Password reset for ${user.name}.`)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to reset password')
-    }
-  }
-
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
+  const resetPassword = (user: UserRecord) =>
+    void confirmAction({
+      action: () => resetUserPassword(user.id),
+      description: 'Their password goes back to the default. They must change it after signing in.',
+      okayText: 'Reset password',
+      success: `Password reset for ${user.name}`,
+      title: `Reset ${user.name}'s password?`,
+      type: 'warning',
+    })
 
   return (
-  <div className="min-h-screen bg-background p-4 md:p-8">
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">Users</h1>
-      <button
-        onClick={openAddModal}
-        className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
-      >
-        <Plus size={18} />
-        Add User
-      </button>
-    </div>
-
-    {loading ? (
-      <TableSkeleton columns={6} />
-    ) : (
-      <UserTable
-        users={users}
-        currentUserRoleSlug={currentUser?.role?.slug ?? null}
-        onEdit={openEditModal}
-        onDelete={handleDelete}
-        onResetPassword={handleResetPassword}
-      />
-    )}
-
-    <Modal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      title={editingUser ? `Edit User — ${editingUser.name}` : 'Add User'}
-    >
-      <UserForm user={editingUser} onSaved={handleSaved} />
-    </Modal>
-  </div>
-)   
+    <CrudListPage
+      title="Users"
+      subtitle="People who sign in, their role and whether their account is active."
+      entity="user"
+      retryLink="/users"
+      fetchRows={fetchUsers}
+      removeRow={deleteUser}
+      name={(u) => u.name}
+      deleteDescription="They lose access immediately. This cannot be undone."
+      renderDetails={(u) => <UserDetails user={u} />}
+      renderDetailsActions={(u) => isAdmin && <Button variant="outline" onClick={() => resetPassword(u)}>Reset password</Button>}
+      renderForm={(u, onSaved) => <UserForm key={u?.id ?? 'new'} user={u} onSaved={onSaved} />}
+      renderList={(h) => <UsersTableSection users={h.rows} canResetPassword={isAdmin} onResetPassword={resetPassword} {...h} />}
+    />
+  )
 }
 
 export default Users

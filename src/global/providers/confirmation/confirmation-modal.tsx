@@ -26,6 +26,9 @@ const TONE: Record<ConfirmationType, { icon: typeof InformationCircleIcon; class
     warning: { className: "bg-status-yellow-bg text-status-yellow-pc", icon: ExclamationTriangleIcon },
 };
 
+/** Destructive confirmations get the red button, approvals the green one. */
+const OKAY_VARIANT = { error: "danger", info: "filled", success: "success", warning: "accent" } as const;
+
 interface ConfirmationModalProps extends ConfirmationOptions {
     open: boolean;
     onResolve: (confirmed: boolean) => void;
@@ -60,7 +63,7 @@ export const ConfirmationModal: FC<ConfirmationModalProps> = ({
                         <Button variant="outline" onClick={() => onResolve(false)}>
                             {cancelText}
                         </Button>
-                        <Button onClick={() => onResolve(true)}>{okayText}</Button>
+                        <Button variant={OKAY_VARIANT[type]} onClick={() => onResolve(true)}>{okayText}</Button>
                     </div>
                 </Dialog.Content>
             </Dialog.Portal>

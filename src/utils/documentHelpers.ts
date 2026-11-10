@@ -11,3 +11,16 @@ export function getExpiryStatus(doc: Document): 'expired' | 'expiring-soon' | 'v
   if (daysUntilExpiry <= 30) return 'expiring-soon'
   return 'valid'
 }
+
+export type ExpiryStatus = ReturnType<typeof getExpiryStatus>
+
+/** Global Badge variant for a document's expiry state. */
+export const EXPIRY_BADGE: Record<ExpiryStatus, 'success' | 'warning' | 'danger' | 'disabled'> = {
+  expired: 'danger',
+  'expiring-soon': 'warning',
+  unknown: 'disabled',
+  valid: 'success',
+}
+
+/** True when any document is expired or expires within 30 days. */
+export const hasExpiringDocument = (docs: Document[]) => docs.some((d) => ['expired', 'expiring-soon'].includes(getExpiryStatus(d)))

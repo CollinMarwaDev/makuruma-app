@@ -1,76 +1,24 @@
-import { useEffect, useState } from 'react'
-import type { Staff as StaffType } from '../types/employee'
-import { fetchStaff, deleteStaff } from '../services/staffService'
-import StaffForm from '../components/StaffForm'
-import StaffTable from '../components/StaffTable'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Plus } from 'lucide-react'
+import { deleteStaff, fetchStaff } from '~/services/staffService'
+import StaffForm from '~/components/StaffForm'
+import { CrudListPage } from '~/components/common/crud-list-page'
+import { StaffDetails } from '~/components/staff/staff-details'
+import { StaffTableSection } from '~/components/staff/staff-table-section'
 
 function Staff() {
-  const [staff, setStaff] = useState<StaffType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingStaff, setEditingStaff] = useState<StaffType | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      if (!cancelled) { setLoading(true); setError(null) }
-      try {
-        const data = await fetchStaff()
-        if (!cancelled) setStaff(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load staff')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    return () => { cancelled = true }
-  }, [reloadTrigger])
-
-  function refresh() { setReloadTrigger((prev) => prev + 1) }
-  function openAddModal() { setEditingStaff(null); setIsModalOpen(true) }
-  function openEditModal(member: StaffType) { setEditingStaff(member); setIsModalOpen(true) }
-  function handleSaved() { setIsModalOpen(false); refresh() }
-
-  async function handleDelete(member: StaffType) {
-    if (!window.confirm(`Delete ${member.full_name}? This can't be undone.`)) return
-    try {
-      await deleteStaff(member.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete staff member')
-    }
-  }
-
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
-
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Staff</h1>
-        <button onClick={openAddModal} className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity">
-          <Plus size={18} />
-          Add Staff
-        </button>
-      </div>
-
-      {loading ? (
-        <TableSkeleton columns={6} />
-      ) : (
-        <StaffTable staff={staff} onEdit={openEditModal} onDelete={handleDelete} />
-      )}
-
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingStaff ? `Edit Staff — ${editingStaff.full_name}` : 'Add Staff'}>
-        <StaffForm staff={editingStaff} onSaved={handleSaved} />
-      </Modal>
-    </div>
+    <CrudListPage
+      title="Staff"
+      subtitle="Office staff, their TIN, payment account and attachments."
+      entity="staff member"
+      retryLink="/staff"
+      fetchRows={fetchStaff}
+      removeRow={deleteStaff}
+      name={(s) => s.full_name}
+      deleteDescription="This cannot be undone. Their attachments are removed too."
+      renderDetails={(s) => <StaffDetails member={s} />}
+      renderForm={(s, onSaved) => <StaffForm key={s?.id ?? 'new'} staff={s} onSaved={onSaved} />}
+      renderList={(h) => <StaffTableSection staff={h.rows} {...h} />}
+    />
   )
 }
 

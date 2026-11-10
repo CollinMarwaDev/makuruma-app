@@ -1,102 +1,24 @@
-import { useEffect, useState } from 'react'
-import type { Driver } from '../types/employee'
-import { fetchDrivers, deleteDriver } from '../services/driverService'
-import DriverForm from '../components/DriverForm'
-import DriverTable from '../components/DriverTable'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Plus } from 'lucide-react'
+import { deleteDriver, fetchDrivers } from '~/services/driverService'
+import DriverForm from '~/components/DriverForm'
+import { CrudListPage } from '~/components/common/crud-list-page'
+import { DriverDetails } from '~/components/drivers/driver-details'
+import { DriversTableSection } from '~/components/drivers/drivers-table-section'
 
 function Drivers() {
-  const [drivers, setDrivers] = useState<Driver[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingDriver, setEditingDriver] = useState<Driver | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      if (!cancelled) {
-        setLoading(true)
-        setError(null)
-      }
-      try {
-        const data = await fetchDrivers()
-        if (!cancelled) setDrivers(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load drivers')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [reloadTrigger])
-
-  function refresh() {
-    setReloadTrigger((prev) => prev + 1)
-  }
-
-  function openAddModal() {
-    setEditingDriver(null)
-    setIsModalOpen(true)
-  }
-
-  function openEditModal(driver: Driver) {
-    setEditingDriver(driver)
-    setIsModalOpen(true)
-  }
-
-  function handleSaved() {
-    setIsModalOpen(false)
-    refresh()
-  }
-
-  async function handleDelete(driver: Driver) {
-    if (!window.confirm(`Delete ${driver.full_name}? This can't be undone.`)) return
-    try {
-      await deleteDriver(driver.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete driver')
-    }
-  }
-
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
-
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Drivers</h1>
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
-        >
-          <Plus size={18} />
-          Add Driver
-        </button>
-      </div>
-
-      {loading ? (
-        <TableSkeleton columns={7} />
-      ) : (
-        <DriverTable drivers={drivers} onEdit={openEditModal} onDelete={handleDelete} />
-      )}
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingDriver ? `Edit Driver — ${editingDriver.full_name}` : 'Add Driver'}
-      >
-        <DriverForm driver={editingDriver} onSaved={handleSaved} />
-      </Modal>
-    </div>
+    <CrudListPage
+      title="Drivers"
+      subtitle="Drivers and the expiry of their licence, passport and permits."
+      entity="driver"
+      retryLink="/drivers"
+      fetchRows={fetchDrivers}
+      removeRow={deleteDriver}
+      name={(d) => d.full_name}
+      deleteDescription="This cannot be undone. A driver assigned to a truck must be unassigned first."
+      renderDetails={(d) => <DriverDetails driver={d} />}
+      renderForm={(d, onSaved) => <DriverForm key={d?.id ?? 'new'} driver={d} onSaved={onSaved} />}
+      renderList={(h) => <DriversTableSection drivers={h.rows} {...h} />}
+    />
   )
 }
 
