@@ -40,6 +40,11 @@ export async function fetchInvoices(filters?: { booking_number?: string }): Prom
   return apiClient(`/invoices${query ? `?${query}` : ''}`)
 }
 
+/** One invoice with its lines and the booking's trucks not yet on an invoice of this type. */
+export async function fetchInvoice(id: number): Promise<Invoice> {
+  return apiClient(`/invoices/${id}`)
+}
+
 export async function markInvoicePaid(id: number): Promise<Invoice> {
   return apiClient(`/invoices/${id}/mark-paid`, { method: 'POST' })
 }

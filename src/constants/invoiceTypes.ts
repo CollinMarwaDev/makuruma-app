@@ -6,3 +6,5 @@ export const INVOICE_TYPES: { value: InvoiceType; label: string; quantityLabel: 
   { value: 'standing_time', label: 'Standing Time', quantityLabel: 'Days', rateLabel: 'Detention Rate ($)' },
   { value: 'adjustment', label: 'Adjustment', quantityLabel: 'Offloading Weight (Ton)', rateLabel: 'Adjusted Rate ($)' },
 ]
+
+export const invoiceTypeLabel = (type: InvoiceType) => INVOICE_TYPES.find((t) => t.value === type)?.label ?? type

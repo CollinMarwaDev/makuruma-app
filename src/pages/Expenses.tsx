@@ -1,268 +1,272 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { ExpenseOrder, ExpenseCategory, LineCategory } from '../types/expense'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ArrowDownTrayIcon, BanknotesIcon, CheckIcon, EyeIcon, PencilSquareIcon, TableCellsIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import type { ExpenseOrder } from '~/types/expense'
 import {
-  fetchExpenseOrders,
-  deleteExpenseOrder,
   approveExpenseOrder,
-  rejectExpenseOrder,
-  markExpensePaid,
+  deleteExpenseOrder,
+  downloadExpenseCategory,
   downloadExpenseOrder,
   downloadExpenseOrderExcel,
-  downloadExpenseCategory,
-} from '../services/expenseService'
-import { useAuth } from '../hooks/useAuth'
-import { LINE_CATEGORIES } from '../constants/expenseLineCategories'
-import ExpenseForm from '../components/ExpenseForm'
-import ExpenseTable from '../components/ExpenseTable'
-import Modal from '../components/ui/Modal'
-import TableSkeleton from '../components/ui/TableSkeleton'
-import { Plus } from 'lucide-react'
+  fetchExpenseOrders,
+  markExpensePaid,
+  rejectExpenseOrder,
+} from '~/services/expenseService'
+import { LINE_CATEGORIES } from '~/constants/expenseLineCategories'
+import { useAuth } from '~/hooks/useAuth'
+import ExpenseForm from '~/components/ExpenseForm'
+import { DetailsSlideOver } from '~/components/common/details-slide-over'
+import { FormModal } from '~/components/common/form-modal'
+import { ListPage } from '~/components/common/list-page'
+import { RecordCell, RecordTableSection } from '~/components/common/record-table-section'
+import { useConfirmAction } from '~/components/common/use-confirm-action'
+import { useDetailsParam } from '~/components/common/use-details-param'
+import { useFetchList } from '~/components/common/use-fetch-list'
+import { ExpenseDetails } from '~/components/expenses/expense-details'
+import { ExpenseStatusBadge } from '~/components/expenses/expense-status-badge'
+import { Button } from '~/global/components/button'
+import { DateRange } from '~/global/components/date-range'
+import type { DropdownMenuType } from '~/global/components/dropdown'
+import { TabLinks } from '~/global/components/tab-link'
+import type { ColumnHeader } from '~/global/components/table'
+import type { ListConfig } from '~/global/hooks/use-list-params'
+import { useSearchParamsState } from '~/global/utils/r3/hooks'
+import { getErrorMessage } from '~/global/utils/r3/utils'
+import { toast } from '~/global/utils/toast'
+
+const fetchAll = () => fetchExpenseOrders({})
+
+const VIEWS = [
+  { label: 'All', value: 'all' },
+  { label: 'Trip', value: 'trip' },
+  { label: 'Office', value: 'office' },
+  { label: 'Truck', value: 'truck' },
+] as const
+
+const HEADERS: ColumnHeader[] = [
+  { id: 'order', label: 'Order' },
+  { canSort: false, id: 'reference', label: 'For' },
+  { canSort: false, id: 'people', label: 'Created / initiated by' },
+  { id: 'payment_date', label: 'Payment date' },
+  { id: 'total', label: 'Total (TZS)' },
+  { id: 'status', label: 'Status' },
+]
+
+const LIST: ListConfig<ExpenseOrder> = {
+  defaultSort: { by: 'created', order: 'desc' },
+  filters: {
+    from: (e, v) => e.created_at.slice(0, 10) >= v,
+    line: (e, v) => e.lines.some((l) => l.line_category === v),
+    status: (e, v) => e.status === v,
+    to: (e, v) => e.created_at.slice(0, 10) <= v,
+    view: (e, v) => v === 'all' || e.category === v,
+  },
+  search: (e) => [e.order_number, e.reference_no, e.booking?.booking_number, e.booking?.client.company_name, e.truck?.reg_no, e.creator.name, e.initiated_by],
+  sort: {
+    created: (e) => e.created_at,
+    order: (e) => e.order_number,
+    payment_date: (e) => e.payment_date ?? '',
+    status: (e) => e.status,
+    total: (e) => Number(e.total_amount),
+  },
+}
+
+/** Run a download and show failures as a toast. */
+const safely = (run: () => Promise<void>) => () =>
+  void run().catch((err: unknown) => toast.error(getErrorMessage(err)))
 
 function Expenses() {
   const { user } = useAuth()
-  const [expenses, setExpenses] = useState<ExpenseOrder[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingExpense, setEditingExpense] = useState<ExpenseOrder | null>(null)
-  const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | 'all'>('all')
-  const [lineCategoryFilter, setLineCategoryFilter] = useState<LineCategory | 'all'>('all')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  const role = user?.role?.slug ?? ''
+  const canApprove = role === 'manager' || role === 'admin'
+  const canPay = role === 'accountant' || role === 'admin'
+  const confirmAction = useConfirmAction()
+  const { data: expenses, error, loading, refresh } = useFetchList(fetchAll)
+  const { closeDetails, openDetails } = useDetailsParam()
+  const [, setParams] = useSearchParamsState<{ currentPage?: string; from?: string; to?: string }>()
+  const [searchParams] = useSearchParams()
+  const [form, setForm] = useState<{ expense: ExpenseOrder | null } | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const counts = useMemo(
+    () => Object.fromEntries(VIEWS.map((v) => [v.value, v.value === 'all' ? expenses.length : expenses.filter((e) => e.category === v.value).length])),
+    [expenses]
+  )
 
-    async function load() {
-      if (!cancelled) {
-        setLoading(true)
-        setError(null)
-      }
-      try {
-        const data = await fetchExpenseOrders({
-          date_from: dateFrom || undefined,
-          date_to: dateTo || undefined,
-        })
-        if (!cancelled) setExpenses(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load expenses')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
+  const edit = (expense: ExpenseOrder | null) => {
+    closeDetails()
+    setForm({ expense })
+  }
 
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [reloadTrigger, dateFrom, dateTo])
+  const act = async (opts: Parameters<typeof confirmAction>[0]) => {
+    if (await confirmAction(opts)) refresh()
+  }
 
-  const filteredExpenses = useMemo(() => {
-    return expenses.filter((exp) => {
-      const matchesOrderCategory = categoryFilter === 'all' || exp.category === categoryFilter
-      const matchesLineCategory =
-        lineCategoryFilter === 'all' ||
-        exp.lines.some((line) => line.line_category === lineCategoryFilter)
-
-      return matchesOrderCategory && matchesLineCategory
+  const remove = (e: ExpenseOrder) =>
+    act({
+      action: async () => {
+        await deleteExpenseOrder(e.id)
+        closeDetails()
+      },
+      description: e.status !== 'pending' ? `${e.order_number} has already been ${e.status}. Deleting it removes it permanently.` : 'This cannot be undone.',
+      okayText: 'Delete expense',
+      success: `${e.order_number} deleted`,
+      title: `Delete expense order ${e.order_number}?`,
     })
-  }, [expenses, categoryFilter, lineCategoryFilter])
-
-  const categoryCounts = useMemo(() => {
-    return {
-      all: expenses.length,
-      trip: expenses.filter((e) => e.category === 'trip').length,
-      office: expenses.filter((e) => e.category === 'office').length,
-      truck: expenses.filter((e) => e.category === 'truck').length,
-    }
-  }, [expenses])
-
-  const lineCategoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: expenses.length }
-    LINE_CATEGORIES.forEach((cat) => {
-      counts[cat.value] = expenses.filter((exp) =>
-        exp.lines.some((line) => line.line_category === cat.value)
-      ).length
+  const approve = (e: ExpenseOrder) =>
+    act({
+      action: () => approveExpenseOrder(e.id),
+      description: `Approve TZS ${Number(e.total_amount).toLocaleString()} so the accountant can pay it.`,
+      okayText: 'Approve',
+      success: `${e.order_number} approved`,
+      title: `Approve ${e.order_number}?`,
+      type: 'success',
     })
-    return counts
-  }, [expenses])
+  const reject = (e: ExpenseOrder) =>
+    act({
+      action: () => rejectExpenseOrder(e.id),
+      description: 'The order will not be paid. The creator can see it was rejected.',
+      okayText: 'Reject',
+      success: `${e.order_number} rejected`,
+      title: `Reject ${e.order_number}?`,
+    })
+  const markPaid = (e: ExpenseOrder) =>
+    act({
+      action: () => markExpensePaid(e.id),
+      description: `Confirm TZS ${Number(e.total_amount).toLocaleString()} has been paid.`,
+      okayText: 'Mark as paid',
+      success: `${e.order_number} marked as paid`,
+      title: `Mark ${e.order_number} as paid?`,
+      type: 'success',
+    })
 
-  function refresh() {
-    setReloadTrigger((prev) => prev + 1)
-  }
-
-  function openAddModal() {
-    setEditingExpense(null)
-    setIsModalOpen(true)
-  }
-
-  function openEditModal(expense: ExpenseOrder) {
-    setEditingExpense(expense)
-    setIsModalOpen(true)
-  }
-
-  function handleSaved() {
-    setIsModalOpen(false)
-    refresh()
-  }
-
-  async function handleDelete(expense: ExpenseOrder) {
-    const warning = expense.status !== 'pending'
-      ? `${expense.order_number} has already been ${expense.status}. This will permanently delete it. Continue?`
-      : `Delete expense order ${expense.order_number}?`
-
-    if (!window.confirm(warning)) return
-    try {
-      await deleteExpenseOrder(expense.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete expense')
-    }
-  }
-
-  async function handleApprove(expense: ExpenseOrder) {
-    try {
-      await approveExpenseOrder(expense.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to approve')
-    }
-  }
-
-  async function handleReject(expense: ExpenseOrder) {
-    if (!window.confirm(`Reject expense order ${expense.order_number}?`)) return
-    try {
-      await rejectExpenseOrder(expense.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to reject')
-    }
-  }
-
-  async function handleMarkPaid(expense: ExpenseOrder) {
-    try {
-      await markExpensePaid(expense.id)
-      refresh()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to mark as paid')
-    }
-  }
-
-  async function handleDownload(expense: ExpenseOrder) {
-    try {
-      await downloadExpenseOrder(expense)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Download failed')
-    }
-  }
-
-  async function handleDownloadExcel(expense: ExpenseOrder) {
-    try {
-      await downloadExpenseOrderExcel(expense)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Excel download failed')
-    }
-  }
-
-  async function handleDownloadCategory(expense: ExpenseOrder, category: string) {
-    try {
-      await downloadExpenseCategory(expense, category)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Download failed')
-    }
-  }
-
-  if (error) return <p className="p-4 md:p-8 text-destructive">Error: {error}</p>
-
-  const categoryTabs: { value: ExpenseCategory | 'all'; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'trip', label: 'Trip' },
-    { value: 'office', label: 'Office' },
-    { value: 'truck', label: 'Truck' },
+  const menuItems = (e: ExpenseOrder): DropdownMenuType[] => [
+    { icon: EyeIcon, label: 'View', onClick: () => openDetails(e.id) },
+    ...(e.status === 'pending' ? [{ icon: PencilSquareIcon, label: 'Edit', onClick: () => edit(e) }] : []),
+    ...(e.status === 'pending' && canApprove
+      ? [
+          { icon: CheckIcon, label: 'Approve', onClick: () => void approve(e) },
+          { icon: XMarkIcon, label: 'Reject', onClick: () => void reject(e) },
+        ]
+      : []),
+    ...(e.status === 'approved' && canPay ? [{ icon: BanknotesIcon, label: 'Mark as paid', onClick: () => void markPaid(e) }] : []),
+    { icon: ArrowDownTrayIcon, label: 'Download PDF', onClick: safely(() => downloadExpenseOrder(e)) },
+    { icon: TableCellsIcon, label: 'Download Excel (all lines)', onClick: safely(() => downloadExpenseOrderExcel(e)) },
+    ...[...new Set(e.lines.map((l) => l.line_category))].map((cat) => ({
+      icon: TableCellsIcon,
+      label: `Excel: ${LINE_CATEGORIES.find((c) => c.value === cat)?.label ?? cat}`,
+      onClick: safely(() => downloadExpenseCategory(e, cat)),
+    })),
+    { icon: TrashIcon, label: 'Delete', onClick: () => void remove(e) },
   ]
 
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
+
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Expenses</h1>
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-brand text-brand-foreground px-4 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
-        >
-          <Plus size={18} />
-          New Expense
-        </button>
-      </div>
-
-      <div className="flex flex-col md:flex-row md:items-center gap-3 mb-6">
-        <div className="flex gap-2 bg-surface-2 rounded-lg p-1 w-fit overflow-x-auto ring-1 ring-white/5">
-          {categoryTabs.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setCategoryFilter(tab.value)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                categoryFilter === tab.value ? 'bg-card text-brand shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab.label} ({categoryCounts[tab.value]})
-            </button>
-          ))}
-        </div>
-
-        <select
-          value={lineCategoryFilter}
-          onChange={(e) => setLineCategoryFilter(e.target.value as LineCategory | 'all')}
-          className="bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground"
-        >
-          <option value="all">All Expense Types ({lineCategoryCounts.all})</option>
-          {LINE_CATEGORIES.map((cat) => (
-            <option key={cat.value} value={cat.value}>
-              {cat.label} ({lineCategoryCounts[cat.value] ?? 0})
-            </option>
-          ))}
-        </select>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs text-muted-foreground">From</label>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-            className="bg-secondary ring-1 ring-border rounded-lg px-2 py-1.5 text-sm text-foreground" />
-          <label className="text-xs text-muted-foreground">To</label>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-            className="bg-secondary ring-1 ring-border rounded-lg px-2 py-1.5 text-sm text-foreground" />
-          {(dateFrom || dateTo) && (
-            <button onClick={() => { setDateFrom(''); setDateTo('') }} className="text-xs text-muted-foreground hover:text-foreground underline">
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
-
-      {loading ? (
-        <TableSkeleton columns={11} />
-      ) : (
-        <ExpenseTable
-          expenses={filteredExpenses}
-          userRoleSlug={user?.role?.slug ?? null}
-          onEdit={openEditModal}
-          onDelete={handleDelete}
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onMarkPaid={handleMarkPaid}
-          onDownload={handleDownload}
-          onDownloadExcel={handleDownloadExcel}
-          onDownloadCategory={handleDownloadCategory}
+    <ListPage
+      title="Expenses"
+      subtitle="Trip, office and truck expense orders: approve, reject and pay."
+      error={error}
+      loading={loading}
+      retryLink="/expenses"
+      overlays={
+        <>
+          <DetailsSlideOver
+            records={expenses}
+            title={(e) => `Expense ${e.order_number}`}
+            footer={(e) => (
+              <>
+                {e.status === 'pending' && canApprove && <Button variant="outline" onClick={() => void reject(e)}>Reject</Button>}
+                {e.status === 'pending' && canApprove && <Button variant="success" onClick={() => void approve(e)}>Approve</Button>}
+                {e.status === 'approved' && canPay && <Button variant="success" onClick={() => void markPaid(e)}>Mark as paid</Button>}
+                {e.status === 'pending' && <Button onClick={() => edit(e)}>Edit</Button>}
+                {e.status !== 'pending' && <Button variant="outline" onClick={safely(() => downloadExpenseOrder(e))}>Download PDF</Button>}
+              </>
+            )}
+          >
+            {(e) => <ExpenseDetails expense={e} />}
+          </DetailsSlideOver>
+          <FormModal open={!!form} size="wide" onClose={() => setForm(null)} title={form?.expense ? `Edit Expense — ${form.expense.order_number}` : 'New Expense Order'}>
+            <ExpenseForm
+              key={form?.expense?.id ?? 'new'}
+              expense={form?.expense ?? null}
+              onSaved={() => {
+                setForm(null)
+                toast.success('Expense saved')
+                refresh()
+              }}
+            />
+          </FormModal>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <TabLinks
+          containerClassName="px-0"
+          tabs={VIEWS.map((v) => ({
+            matchPattern: v.value === 'all' ? /^\/expenses(?![^#]*[?&]view=(trip|office|truck)\b)/ : new RegExp(`^/expenses\\?(.*&)?view=${v.value}\\b`),
+            name: `${v.label} (${counts[v.value] ?? 0})`,
+            url: v.value === 'all' ? '/expenses' : `/expenses?view=${v.value}`,
+          }))}
         />
-      )}
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingExpense ? `Edit Expense — ${editingExpense.order_number}` : 'New Expense Order'}
-      >
-        <ExpenseForm expense={editingExpense} onSaved={handleSaved} />
-      </Modal>
-    </div>
+        <RecordTableSection
+          rows={expenses}
+          isLoading={loading}
+          config={LIST}
+          headers={HEADERS}
+          excludeParams={['view']}
+          searchPlaceholder="Search order, reference, booking, truck, person"
+          createLabel="New expense"
+          onCreate={() => edit(null)}
+          onView={(e) => openDetails(e.id)}
+          empty={{ notFound: 'No expense order matches your search or filters.', text: 'Create an expense order for a trip, the office or a truck.', title: 'No expense orders yet' }}
+          filters={(setFilter) => [
+            {
+              label: 'Status',
+              onClick: () => undefined,
+              subItems: (['pending', 'approved', 'rejected', 'paid'] as const).map((s) => ({ label: s.charAt(0).toUpperCase() + s.slice(1), onClick: () => setFilter('status', s) })),
+            },
+            { label: 'Expense type', onClick: () => undefined, subItems: LINE_CATEGORIES.map((c) => ({ label: c.label, onClick: () => setFilter('line', c.value) })) },
+            {
+              content: (close) => (
+                <div className="w-72 p-2">
+                  <p className="mb-2 text-xs text-muted-foreground">Created between</p>
+                  <DateRange
+                    defaultValue={from && to ? { from, to } : undefined}
+                    onChange={(range) => {
+                      setParams({ currentPage: undefined, from: range.from, to: range.to })
+                      close()
+                    }}
+                  />
+                </div>
+              ),
+              label: 'Created date',
+              onClick: () => undefined,
+            },
+          ]}
+          menuItems={menuItems}
+          cells={(e) => (
+            <>
+              <RecordCell>
+                <p className="font-medium">{e.order_number}</p>
+                <p className="text-xs capitalize text-muted-foreground">
+                  {e.category}
+                  {e.reference_no ? ` · ${e.reference_no}` : ''}
+                </p>
+              </RecordCell>
+              <RecordCell className="text-muted-foreground">{e.booking?.booking_number ?? e.truck?.reg_no ?? '—'}</RecordCell>
+              <RecordCell className="text-muted-foreground">
+                <p>{e.creator.name}</p>
+                <p className="text-xs">{e.initiated_by ?? '—'}</p>
+              </RecordCell>
+              <RecordCell className="whitespace-nowrap text-muted-foreground">{e.payment_date?.slice(0, 10) ?? '—'}</RecordCell>
+              <RecordCell className="font-medium">{Number(e.total_amount).toLocaleString()}</RecordCell>
+              <RecordCell><ExpenseStatusBadge status={e.status} /></RecordCell>
+            </>
+          )}
+        />
+      </div>
+    </ListPage>
   )
 }
 
