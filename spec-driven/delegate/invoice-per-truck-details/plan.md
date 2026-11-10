@@ -1,6 +1,6 @@
 # Plan — invoice-per-truck-details
 
-Status: draft (awaiting `approved`). Requirements: confirmed 2026-11-10.
+Status: approved 2026-11-10. Requirements: confirmed 2026-11-10.
 Assumption kept: any truck may be invoiced at any time (advance invoices need this).
 
 ## Backend (makuruma-backend)

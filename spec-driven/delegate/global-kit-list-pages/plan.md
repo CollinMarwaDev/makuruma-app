@@ -1,6 +1,6 @@
 # Plan — global-kit-list-pages
 
-Status: draft (awaiting `approved`). Requirements: confirmed 2026-11-10.
+Status: approved 2026-11-10. Requirements: confirmed 2026-11-10.
 
 ## Reference pattern (copy, don't reinvent)
 
