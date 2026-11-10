@@ -15,6 +15,13 @@ BRANCH="${1:-main}"
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 
+# Files stay owned by the normal server user even when this runs as root (e.g. Hostinger's browser terminal).
+OWNER="${OWNER:-$( [ "$(id -u)" = 0 ] && echo collins || whoami )}"
+if [ "$(id -u)" = 0 ]; then
+  export COMPOSER_ALLOW_SUPERUSER=1
+  git config --global --get-all safe.directory | grep -qx "$APP_DIR" || git config --global --add safe.directory "$APP_DIR"
+fi
+
 step() { printf '\n\033[1;36m▶ %s\033[0m\n' "$1"; }
 fail() { printf '\033[1;31m✖ %s\033[0m\n' "$1"; exit 1; }
 
@@ -50,6 +57,7 @@ if [ -n "${WEB_ROOT:-}" ] && [ "$WEB_ROOT" != "$APP_DIR/dist" ]; then
 else
   echo "  built into $APP_DIR/dist (Nginx root should point here)"
 fi
+sudo chown -R "$OWNER":www-data "$APP_DIR"
 sudo nginx -t && sudo systemctl reload nginx
 
 printf '\n\033[1;32m✔ Web app deployed (%s).\033[0m\n' "$(git rev-parse --short HEAD)"
