@@ -14,6 +14,8 @@ export interface DashboardSummary {
       documentable_id: number
       document_type: string
       expiry_date: string
+      /** Truck / trailer reg no, or driver / staff name. */
+      owner_name: string | null
     }[]
   }
   bookings: {
@@ -40,6 +42,8 @@ export interface DashboardSummary {
     paid_this_month: number
     by_category: { trip: number; office: number; truck: number }
   }
+  /** Last 6 months, both in USD (expenses converted with that month's average invoice rate). */
+  finance_trend: { month: string; revenue: number; expenses: number | null; expenses_tzs: number; rate: number | null }[]
   invoicing: {
     total_invoiced: number
     this_month: number

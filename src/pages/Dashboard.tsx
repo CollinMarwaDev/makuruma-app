@@ -12,9 +12,11 @@ import { StatsCard } from '~/global/components/stats-card'
 import { Badge } from '~/global/components/badge'
 import { FleetStatusCard } from '~/components/dashboard/fleet-status-card'
 import { ComplianceCard } from '~/components/dashboard/compliance-card'
-import { ExpenseSplitCard, RevenueTrendCard } from '~/components/dashboard/dashboard-charts'
+import { ExpenseSplitCard, RevenueExpenseCard } from '~/components/dashboard/dashboard-charts'
 
 const money = (value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+/** Expense amounts are recorded in Tanzanian shillings. */
+const tzs = (value: number) => `TZS ${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
 const percent = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0)
 
 function greeting() {
@@ -136,7 +138,7 @@ function DashboardContent({ summary }: { summary: DashboardSummary }) {
           value={String(expenses.pending_count)}
           valueSuffix="awaiting approval"
           iconClassName="bg-status-red-bg text-status-red-pc"
-          content={<p className="text-xs text-muted-foreground">{money(expenses.pending_total)} to approve · {money(expenses.paid_this_month)} paid this month</p>}
+          content={<p className="text-xs text-muted-foreground">{tzs(expenses.pending_total)} to approve · {tzs(expenses.paid_this_month)} paid this month</p>}
         />
         <StatsCard
           icon={FileText}
@@ -149,7 +151,7 @@ function DashboardContent({ summary }: { summary: DashboardSummary }) {
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <RevenueTrendCard invoicing={invoicing} />
+          <RevenueExpenseCard trend={summary.finance_trend ?? []} />
         </div>
         <FleetStatusCard tracking={tracking} />
       </section>
