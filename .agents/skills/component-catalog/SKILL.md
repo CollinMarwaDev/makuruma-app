@@ -26,6 +26,8 @@ description: Reuse the Makuruma global component kit (src/global/components) bef
 - Confirmation: render inside `ConfirmationProvider`, then `await confirm({...})`.
 - View tabs: `TabLinks` (its `matchPattern` is tested against path + query, so `?view=` tabs work; see `components/tracking/tracking-table-section.tsx`).
 - Record detail/edit panes: `SlideOver` with the open id in the URL (`?leg=`), sections in `Card`, fields from `form-controls/*`, errors via `ModalFormError` (see `pages/Tracking.tsx`).
+- Record lists: `components/common/record-table-section.tsx` (TableSection + SearchAndFilter + ActiveFilters + sortable `createTable` + EllipsisMenu + EmptyState + Pagination) driven by the global hook `useListParams` (`src/global/hooks/use-list-params.ts`, URL state: `q`, filter params, `sortBy`, `sortOrder`, `currentPage`). Simple add/edit/view/delete pages use `components/common/crud-list-page.tsx`; see `pages/Clients.tsx`.
+- Destructive and approval actions: `components/common/use-confirm-action.ts` (global confirmation → action → toast). Confirmation OK button follows `type`: `error` red, `success` green, `warning` orange.
 - Status and count pills: `Badge` variants only (`default` blue, `warning` orange, `danger` red, `success` green, `disabled` grey); no hand-made pills.
 - Repeated rows with the same component → typed array + `map()`.
 - Existing pages still use their older local components (`src/components/ui/*`); migrate a screen to the kit only when the task touches it.

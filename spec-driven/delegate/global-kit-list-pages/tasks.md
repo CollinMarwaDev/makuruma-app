@@ -1,6 +1,6 @@
 # Tasks — global-kit-list-pages
 
-Status: in progress (approved 2026-11-10). Plan: approved 2026-11-10 (incl. `use-list-params`).
+Status: done 2026-11-10. Plan: approved 2026-11-10 (incl. `use-list-params`).
 Every task: check `src/global` (components, hooks, utils) first; reuse before adding.
 Every phase ends with: `pnpm typecheck` · `pnpm lint` · `pnpm build` · Playwright light + dark · one commit.
 
@@ -22,7 +22,7 @@ Every phase ends with: `pnpm typecheck` · `pnpm lint` · `pnpm build` · Playwr
 - [x] T1.3 `components/clients/clients-table-section.tsx`: TableSection, SearchAndFilter (filter: advance invoicing), ActiveFilters, createTable, EllipsisMenu (View, Edit, Delete), EmptyState, Pagination.
 - [x] T1.4 `components/clients/client-details.tsx`: slide-over body (`LabelValueListItem`).
 - [x] T1.5 `pages/Clients.tsx`: PageHeader, ErrorFallback, GeneralErrorBoundary, SlideOver `?client=`, `useConfirmation` delete, `toast`; form stays in `components/ui/Modal`.
-- [ ] T1.6 Screenshots to you for sign-off before Phase 2.
+- [x] T1.6 Screenshots to you for sign-off before Phase 2.
 
 ## Phase 2 — simple lists
 
@@ -47,15 +47,15 @@ Every phase ends with: `pnpm typecheck` · `pnpm lint` · `pnpm build` · Playwr
 
 ## Phase 5 — Invoices and Expenses
 
-- [ ] T5.1 Invoices: search invoice no/booking/client; filters type, status, client; View slide-over (lines with per-truck route/cargo/ETA, `uninvoiced_trucks` from invoice-per-truck-details); Edit, Download, Confirm payment ✓, Delete ✓; `?invoice=`.
-- [ ] T5.2 Expenses: `TabLinks` `?view=all|trip|office|truck` (counts in label); search order no/reference/created by; filters status, line category, date from/to (global `DatePicker`); View slide-over (lines, approval trail); Edit, Approve ✓, Reject ✓, Mark paid ✓, Delete ✓ (keeps existing warning text), downloads; `?expense=`.
+- [x] T5.1 Invoices: search invoice no/booking/client; filters type, status, client; View slide-over (lines with per-truck route/cargo/ETA, `uninvoiced_trucks` from invoice-per-truck-details); Edit, Download, Confirm payment ✓, Delete ✓; `?invoice=`.
+- [x] T5.2 Expenses: `TabLinks` `?view=all|trip|office|truck` (counts in label); search order no/reference/created by; filters status, line category, date from/to (global `DatePicker`); View slide-over (lines, approval trail); Edit, Approve ✓, Reject ✓, Mark paid ✓, Delete ✓ (keeps existing warning text), downloads; `?expense=`.
 
 ## Phase 6 — cleanup and docs
 
-- [ ] T6.1 Delete unused: `components/{Trips,Staff,Driver,Client,Vendor,User,Truck,Trailer,OfficeAsset,Invoice,Expense}Table.tsx`, `components/ui/{TableSkeleton,Badge,Skeleton}.tsx` (only if no imports).
-- [ ] T6.2 Grep gate: no `window.confirm`, `alert(`, `TableSkeleton`, `components/ui/Badge` in `src/pages`, `src/components`.
-- [ ] T6.3 Update `component-catalog` skill (useListParams, slide-over details pattern); `FEATURES.md` → done.
-- [ ] T6.4 Sync to Mac, commit per phase on `feature/contract-booking-tracking`.
+- [x] T6.1 Deleted: all 11 old `*Table.tsx`, `pages/{Trucks,Trailers,OfficeAssets}.tsx`, `components/ui/{TableSkeleton,Badge,Skeleton,PasswordInput}.tsx`, unused `TruckCard.tsx.tsx`. `components/ui/Modal` stays (forms).
+- [x] T6.2 Grep gate: no `window.confirm`, `alert(`, `TableSkeleton`, `components/ui/Badge` in `src/pages`, `src/components`.
+- [x] T6.3 Update `component-catalog` skill (useListParams, slide-over details pattern); `FEATURES.md` → done.
+- [x] T6.4 Sync to Mac, commit per phase on `feature/contract-booking-tracking`.
 
 ## Badge mapping (all pages)
 

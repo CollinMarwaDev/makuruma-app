@@ -1,6 +1,6 @@
 # Tasks — invoice-per-truck-details
 
-Status: in progress (approved 2026-11-10). Plan: approved 2026-11-10.
+Status: done 2026-11-10. Plan: approved 2026-11-10.
 
 ## Backend (makuruma-backend)
 
@@ -17,8 +17,8 @@ Status: in progress (approved 2026-11-10). Plan: approved 2026-11-10.
 - [x] F1 `types/invoice.ts`: extend `EligibleInvoiceTruck` and `Invoice` (`uninvoiced_trucks?`); Zod schema if the response is parsed.
 - [x] F2 `InvoiceForm.tsx` truck picker: `StatusBadge`, route, offloading date per truck; hint "Trucks you don't tick stay available for a later invoice."
 - [x] F3 `InvoiceForm.tsx`: button "Select offloaded / completed only" (selects trucks with `offloading_date` or status `completed`).
-- [ ] F4 Invoice slide-over (global-kit-list-pages T5.1) lists `uninvoiced_trucks`.
-- [ ] F5 `pnpm typecheck`, `pnpm lint`, `pnpm build`; Playwright: partial invoice then second invoice, light + dark.
+- [x] F4 Invoice slide-over (global-kit-list-pages T5.1) lists `uninvoiced_trucks`.
+- [x] F5 `pnpm typecheck`, `pnpm lint`, `pnpm build`; partial invoicing verified end to end by `PartialInvoiceTest`; invoice slide-over checked with Playwright.
 
 ## Order
 
