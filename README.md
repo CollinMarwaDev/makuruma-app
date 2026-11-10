@@ -30,6 +30,10 @@ Environment files:
 | `.env.development` | `pnpm dev` | `VITE_API_BASE_URL=http://127.0.0.1:8000/api` |
 | `.env.production` | `pnpm build` | production API URL |
 
+## Deploy
+
+Production deploy (VPS, Nginx, pnpm build): see `../makuruma-backend/DEPLOY.md`. On the server run `bash scripts/deploy-server.sh` from this folder.
+
 ## Folder structure
 
 ```
