@@ -1,6 +1,6 @@
 # Requirements — invoice-per-truck-details
 
-Status: draft (awaiting `confirm`). Contract 2.4 (Invoice), decided with the client 2026-11-10.
+Status: confirmed 2026-11-10. Contract 2.4 (Invoice), decided with the client 2026-11-10.
 
 ## Decisions
 

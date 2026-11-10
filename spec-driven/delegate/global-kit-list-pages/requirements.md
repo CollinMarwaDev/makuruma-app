@@ -1,6 +1,6 @@
 # Requirements — global-kit-list-pages
 
-Status: draft (awaiting `confirm`)
+Status: confirmed 2026-11-10
 
 ## Goal
 

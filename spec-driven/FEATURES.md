@@ -19,10 +19,10 @@ Open items: per-item implementation plan to be approved before coding (see `dele
 
 Move every remaining list page (Trips, Assets, Staff, Drivers, Clients, Vendors, Expenses, Invoices, Reconciliation, Reports, Users) and Profile onto the global kit: TableSection search + filters, createTable, TabLinks, Pagination, EmptyState, ErrorFallback/GeneralErrorBoundary, SlideOver for details, useConfirmation for delete/approve, toast.
 
-Artifacts: `delegate/global-kit-list-pages/requirements.md` (awaiting confirm) → plan.md → tasks.md.
+Artifacts: `delegate/global-kit-list-pages/requirements.md` (confirmed) → `plan.md` (awaiting approved) → tasks.md.
 
 ## invoice-per-truck-details — status: discussed
 
 Client decision (2026-11-10): loading/offloading point, cargo, rate and ETA can be the same or different per truck; invoice PDF and tracking sheet show them per truck line (header shows "Multiple – see lines" when they differ). A booking can be invoiced in parts — only the trucks that have finished, while others are still in transit.
 
-Artifacts: `delegate/invoice-per-truck-details/requirements.md` (awaiting confirm).
+Artifacts: `delegate/invoice-per-truck-details/requirements.md` (confirmed) → `plan.md` (awaiting approved).
