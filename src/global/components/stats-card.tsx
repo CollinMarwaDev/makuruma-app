@@ -120,10 +120,17 @@ export const StatRateSection: FC<StatRateSectionProps> = ({
     );
 };
 
-export const StatCardLoading = () => {
+export const StatCardLoading: FC<{ count?: number; className?: string }> = ({
+    count = 4,
+    className,
+}) => {
     return (
-        <div className="grid grid-cols-4 gap-4">
-            {Array.from({ length: 4 }, (_, index) => (
+        <div
+            className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4", className)}
+            role="status"
+            aria-label="Loading"
+        >
+            {Array.from({ length: count }, (_, index) => (
                 <Card className="space-y-4" key={index}>
                     <div className="flex justify-between">
                         <div className="space-y-2">

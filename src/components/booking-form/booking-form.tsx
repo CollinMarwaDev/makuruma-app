@@ -1,5 +1,6 @@
 import type { FC, FormEvent } from 'react'
-import { Copy, Loader2 } from 'lucide-react'
+import { Copy } from 'lucide-react'
+import { ParagraphLoading } from '~/global/components/loaders/paragraph-loader'
 import { Button } from '~/global/components/button'
 import { EmptyStateIcon } from '~/global/components/error-boundary/icons'
 import { BookingTrucksTable } from '~/components/booking-form/booking-trucks-table'
@@ -146,7 +147,7 @@ const BookingForm: FC<ManageBookingFormOptions> = (props) => {
               {form.isEditMode ? 'Add a truck to this booking' : `Available trucks — ${form.bookingDirection === 'go' ? 'off duty' : 'awaiting return'}`}
             </h4>
             {form.isLoadingTrucks ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Loading trucks…</p>
+              <div role="status" aria-label="Loading trucks"><ParagraphLoading lines={3} /></div>
             ) : (
               <TruckPicker
                 trucks={form.eligibleTrucks}

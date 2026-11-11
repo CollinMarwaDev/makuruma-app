@@ -9,7 +9,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
-import PageLoader from './components/ui/PageLoader'
+import { FullPageLoader } from '~/global/components/loaders/full-page-loader'
 import Staff from './pages/Staff'
 import Drivers from './pages/Drivers'
 import Clients from './pages/Clients'
@@ -35,7 +35,7 @@ const ComponentsPlayground = lazy(() => import('~/pages/components-playground'))
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth()
 
-  if (isLoading) return <PageLoader />
+  if (isLoading) return <FullPageLoader label="Loading Makuruma" />
   if (!user) return <Navigate to="/login" replace />
 
   return <>{children}</>
@@ -50,7 +50,7 @@ function AppRoutes() {
         path="/components/playground"
         element={
           <ProtectedRoute>
-            <Suspense fallback={<PageLoader />}>
+            <Suspense fallback={<FullPageLoader />}>
               <ComponentsPlayground />
             </Suspense>
           </ProtectedRoute>

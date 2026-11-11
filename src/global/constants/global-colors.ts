@@ -6,6 +6,7 @@ export const globalColors = {
     accent: "#f8a13f", // orange
     primary: "#2a7f88", // teal-blue
     primaryDark: "#106880", // logo blue
+    primaryLight: "#7fc4cb", // primary-300, readable on light and dark surfaces
     success: "#22a06b", // green
     danger: "#e5484d",
     warning: "#f5a524",

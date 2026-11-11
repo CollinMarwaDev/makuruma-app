@@ -1,7 +1,7 @@
 import type { FC } from 'react'
 import { ClipboardList, Truck, Weight } from 'lucide-react'
 import type { Booking } from '~/types/booking'
-import { StatsCard } from '~/global/components/stats-card'
+import { StatCardLoading, StatsCard } from '~/global/components/stats-card'
 
 interface BookingHighlightsProps {
   bookings: Booking[]
@@ -17,13 +17,14 @@ export const BookingHighlights: FC<BookingHighlightsProps> = ({ bookings, isLoad
   const tons = (list: typeof trucks) => list.reduce((sum, bt) => sum + Number(bt.capacity ?? 0), 0)
   const goTrucks = bookings.filter((b) => b.direction === 'go').flatMap((b) => b.booking_trucks)
   const returnTrucks = bookings.filter((b) => b.direction === 'return').flatMap((b) => b.booking_trucks)
-  const placeholder = isLoading ? '…' : undefined
 
   const cards = [
-    { content: `${count('go')} Go · ${count('return')} Return`, icon: ClipboardList, title: 'Total bookings', value: placeholder ?? format(bookings.length) },
-    { content: `${goTrucks.length} on Go · ${returnTrucks.length} on Return`, icon: Truck, title: 'Trucks assigned', value: placeholder ?? format(trucks.length) },
-    { content: `${format(tons(goTrucks))} Go · ${format(tons(returnTrucks))} Return`, icon: Weight, title: 'Total tons', value: placeholder ?? format(tons(trucks)) },
+    { content: `${count('go')} Go · ${count('return')} Return`, icon: ClipboardList, title: 'Total bookings', value: format(bookings.length) },
+    { content: `${goTrucks.length} on Go · ${returnTrucks.length} on Return`, icon: Truck, title: 'Trucks assigned', value: format(trucks.length) },
+    { content: `${format(tons(goTrucks))} Go · ${format(tons(returnTrucks))} Return`, icon: Weight, title: 'Total tons', value: format(tons(trucks)) },
   ]
+
+  if (isLoading) return <StatCardLoading count={3} className="mb-6 sm:grid-cols-3 xl:grid-cols-3" />
 
   return (
     <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">

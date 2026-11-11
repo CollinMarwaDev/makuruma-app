@@ -23,6 +23,8 @@ export interface DashboardSummary {
     awaiting_return: number
     completed: number
     this_month: number
+    /** Bookings created per month (last 6 months), by direction. Optional so older API builds still render. */
+    monthly_trend?: { month: string; go: number; return: number }[]
   }
   /** Trucks per tracking status key. Fixed keys are always present; admin-added statuses appear as extra keys. */
   tracking: Record<string, number> & {

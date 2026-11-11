@@ -4,14 +4,15 @@ import type { DashboardSummary } from '~/types/dashboard'
 import { fetchDashboardSummary } from '~/services/dashboardService'
 import { useAuth } from '~/hooks/useAuth'
 import { ButtonLink } from '~/global/components/button'
-import { Card } from '~/global/components/card'
 import { ErrorFallback } from '~/global/components/error-boundary'
-import { SkeletonLoader } from '~/global/components/loaders/skeleton-loader'
 import { ProgressBar } from '~/global/components/progress-bar'
-import { StatsCard } from '~/global/components/stats-card'
+import { StatCardLoading, StatsCard } from '~/global/components/stats-card'
+import BarChartLoading from '~/global/components/charts/bar-chart-loading'
+import PieChartLoading from '~/global/components/charts/pie-chart-loading'
 import { Badge } from '~/global/components/badge'
 import { FleetStatusCard } from '~/components/dashboard/fleet-status-card'
 import { ComplianceCard } from '~/components/dashboard/compliance-card'
+import { BookingsCard } from '~/components/dashboard/bookings-card'
 import { ExpenseSplitCard, RevenueExpenseCard } from '~/components/dashboard/dashboard-charts'
 
 const money = (value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
@@ -24,21 +25,14 @@ function greeting() {
   return hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 }
 
+/** First load: the kit's stat-card and chart skeletons in the dashboard's layout. */
 function DashboardSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <Card key={i} variant="panel" className="h-36">
-            <SkeletonLoader className="w-1/2" />
-            <SkeletonLoader className="h-8 w-1/3" />
-            <SkeletonLoader className="h-10" />
-          </Card>
-        ))}
-      </div>
+      <StatCardLoading />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card variant="panel" className="h-80 lg:col-span-2"><SkeletonLoader className="h-full" /></Card>
-        <Card variant="panel" className="h-80"><SkeletonLoader className="h-full" /></Card>
+        <BarChartLoading containerClassName="lg:col-span-2" className="h-64" />
+        <PieChartLoading />
       </div>
     </div>
   )
@@ -157,34 +151,7 @@ function DashboardContent({ summary }: { summary: DashboardSummary }) {
       </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card variant="panel">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Bookings</h2>
-              <p className="text-xs text-muted-foreground">{bookings.this_month} created this month</p>
-            </div>
-            <ButtonLink to="/bookings" variant="text" className="px-3 py-1.5 text-xs">View all</ButtonLink>
-          </div>
-          <dl className="grid grid-cols-3 gap-2 text-center">
-            {[
-              { label: 'Total', value: bookings.total },
-              { label: 'Awaiting return', value: bookings.awaiting_return },
-              { label: 'Completed', value: bookings.completed },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl bg-surface-container p-3">
-                <dd className="text-xl font-bold text-foreground">{item.value}</dd>
-                <dt className="text-xs text-muted-foreground">{item.label}</dt>
-              </div>
-            ))}
-          </dl>
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Completion rate</span>
-              <span>{percent(bookings.completed, bookings.total)}%</span>
-            </div>
-            <ProgressBar label="Completion rate" progress={percent(bookings.completed, bookings.total)} className="h-1.5 bg-surface-container" indicatorClassName="bg-status-green" />
-          </div>
-        </Card>
+        <BookingsCard bookings={bookings} />
         <ExpenseSplitCard expenses={expenses} />
         <div className="relative">
           {complianceTotal > 0 && (

@@ -10,6 +10,8 @@ export interface LegendItemProps {
     curveRadius?: number;
     finalRiseHeight?: number;
     side: "left" | "right" | "center" | string;
+    /** Optional small line under the value, e.g. a share like "42%". */
+    hint?: string;
 }
 
 export const PieChartLegend: FC<LegendItemProps> = ({
@@ -21,6 +23,7 @@ export const PieChartLegend: FC<LegendItemProps> = ({
     curveRadius = 16,
     finalRiseHeight = 20,
     side,
+    hint,
 }) => {
     const strokeW = 2;
 
@@ -49,8 +52,7 @@ export const PieChartLegend: FC<LegendItemProps> = ({
                     />
                     <circle cx={dotX} cy={dotY - 2} r={4} fill={color} />
                 </svg>
-                <p className="mt-1 text-sm">{name}</p>
-                <p className="text-primary-950 text-sm font-bold">{value}</p>
+                <LegendText name={name} value={value} hint={hint} />
             </div>
         );
     }
@@ -106,10 +108,25 @@ export const PieChartLegend: FC<LegendItemProps> = ({
                 />
                 <circle cx={dotX} cy={dotY - 2} r={4} fill={color} />
             </svg>
-            <p className="mt-1 text-sm">{name}</p>
-            <p className="text-primary-950 text-sm font-bold">
-                {value.toLocaleString()}
-            </p>
+            <LegendText name={name} value={value} hint={hint} />
         </div>
     );
 };
+
+const LegendText: FC<Pick<LegendItemProps, "name" | "value" | "hint">> = ({
+    name,
+    value,
+    hint,
+}) => (
+    <div className="mt-1 text-center leading-tight">
+        <p className="text-xs text-muted-foreground">{name}</p>
+        <p className="text-sm font-bold whitespace-nowrap tabular-nums text-foreground">
+            {value.toLocaleString()}
+        </p>
+        {hint && (
+            <p className="text-[11px] tabular-nums text-muted-foreground">
+                {hint}
+            </p>
+        )}
+    </div>
+);

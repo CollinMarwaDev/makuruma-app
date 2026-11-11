@@ -6,6 +6,7 @@ import type { Invoice, InvoiceType, EligibleInvoiceTruck } from '../types/invoic
 import { INVOICE_TYPES } from '../constants/invoiceTypes'
 import { Button } from '~/global/components/button'
 import { StatusBadge } from '~/components/tracking/status-badge'
+import { ParagraphLoading } from '~/global/components/loaders/paragraph-loader'
 
 interface InvoiceFormProps {
   invoice?: Invoice | null
@@ -333,7 +334,7 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
         {isEditMode ? 'Trucks on this Invoice' : `Select Truck(s) — not yet invoiced under ${typeConfig.label}`}
       </h3>
 
-      {truckState.loading && <p className="text-sm text-muted-foreground mb-4">Loading eligible trucks...</p>}
+      {truckState.loading && <div className="mb-4" role="status" aria-label="Loading eligible trucks"><ParagraphLoading lines={3} /></div>}
       {!isEditMode && !truckState.loading && bookingId && truckState.eligible.length === 0 && (
         <p className="text-sm text-muted-foreground mb-4">All trucks in this booking already have a {typeConfig.label} invoice.</p>
       )}

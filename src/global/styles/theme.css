@@ -67,42 +67,61 @@
 .dark {
   color-scheme: dark;
 
-  --mk-primary: #2f8e98;
-  --mk-accent-foreground: #0d0d0f;
+  /*
+   * "Dim" dark: deep teal-slate surfaces instead of near-black, so cards lift
+   * gently off the page (~1.25:1) and body text sits around 12:1 rather than a
+   * glaring 18:1. Text is an off-white, never #fff. Elevation goes lighter, not
+   * darker: background < surface-2 < surface < surface-container < muted.
+   */
+  --mk-primary: #3a9ca6;
+  --mk-primary-foreground: #ffffff;
+  --mk-accent: #f6a94f;
+  --mk-accent-foreground: #1a1206;
+  --mk-success: #34b37c;
+  --mk-danger: #ef6064;
+  --mk-warning: #e9a23b;
 
-  --mk-primary-50: #0f2427;  --mk-primary-100: #133136; --mk-primary-200: #1a434a;
-  --mk-primary-300: #22575f; --mk-primary-400: #2a6f78; --mk-primary-500: #2f8e98;
-  --mk-primary-600: #4aa4ad; --mk-primary-700: #7fc4cb; --mk-primary-800: #b0dde1;
-  --mk-primary-900: #d6eef0; --mk-primary-950: #f1f1f4;
+  --mk-primary-50: #142a2e;  --mk-primary-100: #17343a; --mk-primary-200: #1d454c;
+  --mk-primary-300: #255a62; --mk-primary-400: #2f7680; --mk-primary-500: #3a9ca6;
+  --mk-primary-600: #5bb2bb; --mk-primary-700: #86c9cf; --mk-primary-800: #b3dfe3;
+  --mk-primary-900: #d6eef0; --mk-primary-950: #e4ecee;
 
-  --mk-secondary-50: #0b1f27;  --mk-secondary-100: #102b36; --mk-secondary-200: #133d4b;
-  --mk-secondary-300: #124858; --mk-secondary-400: #10566a; --mk-secondary-500: #16809f;
-  --mk-secondary-600: #2f97b6; --mk-secondary-700: #63b6d1; --mk-secondary-800: #9dd3e5;
+  --mk-secondary-50: #12262e;  --mk-secondary-100: #15303b; --mk-secondary-200: #1a3e4c;
+  --mk-secondary-300: #1f4e5f; --mk-secondary-400: #256178; --mk-secondary-500: #2c86a6;
+  --mk-secondary-600: #4aa3c2; --mk-secondary-700: #74bcd5; --mk-secondary-800: #a4d6e7;
   --mk-secondary-900: #cbe9f2; --mk-secondary-950: #eaf6fa;
 
-  --mk-accent-50: #2a1a08;  --mk-accent-100: #3a240c;
+  --mk-accent-50: #2b2116;  --mk-accent-100: #382916; --mk-accent-200: #4d3518;
+  --mk-accent-300: #6e4a1b; --mk-accent-400: #9a6520; --mk-accent-500: #f08a1c;
+  --mk-accent-600: #f6a94f; --mk-accent-700: #fbc07a; --mk-accent-800: #fdd6a8;
+  --mk-accent-900: #feead1; --mk-accent-950: #fff6eb;
 
-  --mk-green-50: #0b2219;  --mk-green-100: #0f2f22;
+  --mk-green-50: #13281f;  --mk-green-100: #163126; --mk-green-200: #1b4232;
+  --mk-green-300: #215a42; --mk-green-400: #287a57; --mk-green-500: #34b37c;
+  --mk-green-600: #4fc490; --mk-green-700: #7dd6ae; --mk-green-800: #aae6cb;
+  --mk-green-900: #d1f5e2; --mk-green-950: #ecfbf3;
 
-  --mk-background: #0a0a0c;
-  --mk-foreground: #f1f1f4;
-  --mk-surface: #171719;
-  --mk-surface-2: #131316;
-  --mk-surface-container: #1f2124;
-  --mk-faint: #1a1c1f;
-  --mk-container: #202326;
-  --mk-outline: #2a2c30;
-  --mk-muted: #262629;
-  --mk-muted-foreground: #97989d;
-  --mk-input: #2a2c30;
-  --mk-input-fields: #131316;
-  --mk-neutral-button: #262629;
+  /* neutrals & surfaces */
+  --mk-background: #0f171a;
+  --mk-foreground: #e4ecee;
+  --mk-surface: #162125;
+  --mk-surface-2: #131c20;
+  --mk-surface-container: #1c292e;
+  --mk-faint: #192529;
+  --mk-container: #1f2d32;
+  --mk-outline: #26353b;
+  --mk-muted: #213035;
+  --mk-muted-foreground: #93a5ac;
+  --mk-input: #2c3c42;
+  --mk-input-fields: #121b1f;
+  --mk-neutral-button: #223137;
 
-  --mk-status-red-pc: #ff6b70;    --mk-status-red-bg: #3a1214;
-  --mk-status-yellow-pc: #f8a13f; --mk-status-yellow-bg: #35240c;
-  --mk-status-green-pc: #3bbf86;  --mk-status-green-bg: #0f2a1e;
-  --mk-status-blue-pc: #63b6d1;   --mk-status-blue-bg: #0f2a35;
-  --mk-status-grey-pc: #a3acb3;   --mk-status-grey-bg: #222427;
+  /* status: softer text tones and low-saturation tinted backgrounds */
+  --mk-status-red: #ef6064;    --mk-status-red-pc: #ff8a8d;    --mk-status-red-bg: #33191c;
+  --mk-status-yellow: #f2b04a; --mk-status-yellow-pc: #f6bf69; --mk-status-yellow-bg: #312616;
+  --mk-status-green: #34b37c;  --mk-status-green-pc: #5fd09d;  --mk-status-green-bg: #14291f;
+  --mk-status-blue: #3a9cc0;   --mk-status-blue-pc: #7cc3dc;   --mk-status-blue-bg: #142a34;
+  --mk-status-grey: #7d8b92;   --mk-status-grey-pc: #aab7bd;   --mk-status-grey-bg: #1f2a2e;
 }
 
 @theme inline {
@@ -155,6 +174,9 @@
   --color-cta-link: var(--mk-primary);
   --color-dark-green: var(--mk-green-700);
   --color-neutral-550: var(--mk-muted-foreground);
+  /* kit components use these greys for secondary text; follow the theme so they stay readable in dark */
+  --color-neutral-500: var(--mk-muted-foreground);
+  --color-gray-500: var(--mk-muted-foreground);
 
   --color-primary-50: var(--mk-primary-50);   --color-primary-100: var(--mk-primary-100);
   --color-primary-200: var(--mk-primary-200); --color-primary-300: var(--mk-primary-300);

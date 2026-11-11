@@ -96,15 +96,22 @@ export const RevenueExpenseCard: FC<{ trend: DashboardSummary['finance_trend'] }
   )
 }
 
-const CATEGORY_COLORS = [globalColors.primary, globalColors.accent, globalColors.success]
+const CATEGORIES = [
+  { key: 'trip', label: 'Trip', color: globalColors.primary, side: 'left' },
+  { key: 'truck', label: 'Truck', color: globalColors.accent, side: 'center' },
+  { key: 'office', label: 'Office', color: globalColors.success, side: 'right' },
+] as const
 
-/** Expense split by category (kit PieChart as a donut) with a value legend. */
+/** "TZS 12,450,000" → "TZS 12.5M" so the legend fits a third-width card. */
+const tzsCompact = (value: number) =>
+  `TZS ${value.toLocaleString(undefined, { maximumFractionDigits: 1, notation: 'compact' })}`
+
+/**
+ * Expense split by category: the kit donut with the total in the centre and
+ * PieChart.Legends connector lines (left / centre / right) under it.
+ */
 export const ExpenseSplitCard: FC<{ expenses: DashboardSummary['expenses'] }> = ({ expenses }) => {
-  const categories = [
-    { label: 'Trip', value: expenses.by_category.trip },
-    { label: 'Truck', value: expenses.by_category.truck },
-    { label: 'Office', value: expenses.by_category.office },
-  ]
+  const categories = CATEGORIES.map((c) => ({ ...c, value: expenses.by_category[c.key] }))
   const total = categories.reduce((sum, c) => sum + c.value, 0)
 
   return (
@@ -119,29 +126,37 @@ export const ExpenseSplitCard: FC<{ expenses: DashboardSummary['expenses'] }> = 
           <p className="text-sm text-muted-foreground">No expenses recorded yet.</p>
         </div>
       ) : (
-        <div className="flex items-center gap-4">
-          <div className="size-36 shrink-0">
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <div className="size-40">
             <PieChart
               data={categories.map((c) => c.value)}
               labels={categories.map((c) => c.label)}
-              backgroundColors={CATEGORY_COLORS.map((color) => ({ color }))}
-              innerCircleWidth={52}
+              backgroundColors={categories.map((c) => ({ color: c.color }))}
+              innerCircleWidth={68}
               borderWidth={0}
-            />
+            >
+              <div className="flex flex-col items-center leading-tight">
+                <span className="text-[11px] text-muted-foreground">Total</span>
+                <span className="text-base font-bold tabular-nums text-foreground">{tzsCompact(total)}</span>
+              </div>
+            </PieChart>
           </div>
-          <ul className="flex-1 space-y-2 text-sm">
-            {categories.map((c, i) => (
-              <li key={c.label} className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2 text-foreground">
-                  <span className="size-2.5 rounded-sm" style={{ backgroundColor: CATEGORY_COLORS[i] }} />
-                  {c.label}
-                </span>
-                <span className="tabular-nums text-muted-foreground">
-                  {tzs(c.value)} <span className="text-xs">({Math.round((c.value / total) * 100)}%)</span>
-                </span>
-              </li>
+          <div className="-mt-3 flex w-full justify-around" title={tzs(total)}>
+            {categories.map((c) => (
+              <PieChart.Legends
+                key={c.key}
+                name={c.label}
+                value={tzsCompact(c.value)}
+                hint={`${Math.round((c.value / total) * 100)}%`}
+                color={c.color}
+                side={c.side}
+                lineWidth={c.side === 'center' ? undefined : 34}
+                curveRadius={10}
+                lineHeight={12}
+                finalRiseHeight={14}
+              />
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </Card>
