@@ -81,6 +81,8 @@ function AppRoutes() {
 <Route path="/reports" element={<Reports />} />
 <Route path="/reconciliation" element={<Reconciliation />} />
 <Route path="/profile" element={<Profile />} />
+{/* Unknown addresses go to the dashboard (or login when signed out) instead of a blank page. */}
+<Route path="*" element={<Navigate to="/" replace />} />
 
       </Route>
     </Routes>
