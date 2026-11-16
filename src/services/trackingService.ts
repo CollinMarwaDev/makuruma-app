@@ -1,4 +1,5 @@
 import type { LegDateField, TrackingLeg, TrackingStatusOption } from '../types/tracking'
+import { z } from 'zod'
 import { apiClient, API_BASE_URL } from './apiClient'
 
 const authHeaders = (accept: string): HeadersInit => {
@@ -88,12 +89,47 @@ export async function downloadTrackingReport(leg: TrackingLeg): Promise<void> {
   return downloadBlob(`/tracking/${leg.id}/download`, 'application/pdf', `tracking-${leg.truck.reg_no}-${leg.booking.booking_number}.pdf`)
 }
 
+/** The client's GOING / RETURN tracking sheet with every open leg (contract 2.2 A). */
 export async function downloadTrackingExcel(): Promise<void> {
+  const today = new Date().toLocaleDateString('en-GB').replaceAll('/', '.')
   return downloadBlob(
     '/tracking/export-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    `tracking-export-${new Date().toISOString().slice(0, 10)}.xlsx`
+    `MAKURUMA TRACKING ${today}.xlsx`
   )
+}
+
+const importResultSchema = z.object({
+  applied: z.boolean(),
+  rows: z.array(
+    z.object({
+      booking_number: z.string().nullable(),
+      changes: z.array(z.object({ field: z.string(), from: z.string().nullable(), to: z.string().nullable() })),
+      errors: z.array(z.string()),
+      result: z.enum(['update', 'unchanged', 'rejected']),
+      row: z.number(),
+      sheet: z.string(),
+      trip_code: z.string().nullable(),
+      truck: z.string(),
+    })
+  ),
+  summary: z.object({ rejected: z.number(), unchanged: z.number(), updated: z.number() }),
+})
+
+export type TrackingImportResult = z.infer<typeof importResultSchema>
+
+/** Bulk update from the edited sheet (contract 2.2 B). `apply: false` only previews; nothing is saved. */
+export async function importTrackingExcel(file: File, apply: boolean): Promise<TrackingImportResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('apply', apply ? '1' : '0')
+  const response = await fetch(`${API_BASE_URL}/tracking/import`, { body: formData, headers: authHeaders('application/json'), method: 'POST' })
+  const body: unknown = await response.json().catch(() => null)
+  if (!response.ok) {
+    const message = body && typeof body === 'object' && 'message' in body ? String(body.message) : 'The file could not be imported'
+    throw new Error(message)
+  }
+  return importResultSchema.parse(body)
 }
 
 // --- Statuses (contract 2.2 D-4) ----------------------------------------------

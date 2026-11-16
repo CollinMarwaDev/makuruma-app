@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { ArrowDownTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
 import type { TrackingLeg } from '~/types/tracking'
 import { downloadTrackingExcel, downloadTrackingReport, fetchTrackingLegs } from '~/services/trackingService'
 import { useAuth } from '~/hooks/useAuth'
 import { exportTrackingCsv } from '~/utils/csvExports'
 import { TrackingLegForm } from '~/components/tracking/tracking-leg-form'
+import { TrackingImportModal } from '~/components/tracking/tracking-import-modal'
 import { TrackingTableSection } from '~/components/tracking/tracking-table-section'
 import { useTrackingList } from '~/components/tracking/use-tracking-list'
 import { useTrackingStatuses } from '~/components/tracking/use-tracking-statuses'
@@ -24,6 +25,7 @@ function Tracking() {
   const [error, setError] = useState<unknown>(null)
   const [reloadTrigger, setReloadTrigger] = useState(0)
   const [isExportingExcel, setIsExportingExcel] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
   /** The open leg lives in the URL (`?leg=`) so a tracking detail can be linked and survives a refresh. */
   const [params, setParams] = useSearchParamsState<{ leg?: string }>()
   const openLegId = params.leg ? Number(params.leg) : null
@@ -85,7 +87,10 @@ function Tracking() {
             <ArrowDownTrayIcon className="size-4" /> Export CSV ({filtered.length})
           </Button>
           <Button variant="outline" loading={isExportingExcel} loadingText="Exporting…" onClick={() => void handleExportExcel()} className="px-4">
-            <TableCellsIcon className="size-4" /> Export Excel
+            <TableCellsIcon className="size-4" /> Download Excel
+          </Button>
+          <Button variant="outline" onClick={() => setIsImportOpen(true)} className="px-4">
+            <ArrowUpTrayIcon className="size-4" /> Upload Excel
           </Button>
         </div>
       </div>
@@ -97,6 +102,8 @@ function Tracking() {
           <TrackingTableSection legs={legs} isLoading={loading} onOpen={openLeg} onDownload={handleDownload} />
         </GeneralErrorBoundary>
       )}
+
+      <TrackingImportModal open={isImportOpen} onClose={() => setIsImportOpen(false)} onImported={refresh} />
 
       <SlideOver open={openLegId !== null} onClose={() => openLeg(null)}>
         <SlideOver.Panel size="3xl" className="max-w-[calc(100vw-2.5rem)]">
