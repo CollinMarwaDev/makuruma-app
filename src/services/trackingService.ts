@@ -22,7 +22,7 @@ async function downloadBlob(path: string, accept: string, filename: string) {
 
 // --- Legs -------------------------------------------------------------------
 
-export async function fetchTrackingLegs(scope: 'active' | 'completed' | 'all' = 'all'): Promise<TrackingLeg[]> {
+export async function fetchTrackingLegs(scope: 'active' | 'offloaded' | 'all' = 'all'): Promise<TrackingLeg[]> {
   return apiClient(`/tracking?scope=${scope}`)
 }
 
@@ -89,14 +89,26 @@ export async function downloadTrackingReport(leg: TrackingLeg): Promise<void> {
   return downloadBlob(`/tracking/${leg.id}/download`, 'application/pdf', `tracking-${leg.truck.reg_no}-${leg.booking.booking_number}.pdf`)
 }
 
-/** The client's GOING / RETURN tracking sheet with every open leg (contract 2.2 A). */
-export async function downloadTrackingExcel(): Promise<void> {
+/**
+ * The client's GOING / RETURN tracking sheet for the given legs (the ones on screen) — the one format for every
+ * tracking download, ready to edit and upload (contract 2.2 A; tracking req. 10).
+ */
+export async function downloadTrackingExcel(legIds: number[]): Promise<void> {
   const today = new Date().toLocaleDateString('en-GB').replaceAll('/', '.')
-  return downloadBlob(
-    '/tracking/export-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    `MAKURUMA TRACKING ${today}.xlsx`
-  )
+  const response = await fetch(`${API_BASE_URL}/tracking/export-excel`, {
+    body: JSON.stringify({ ids: legIds }),
+    headers: { ...authHeaders('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'), 'Content-Type': 'application/json' },
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('Download failed')
+  const url = window.URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `MAKURUMA TRACKING ${today}.xlsx`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
 }
 
 const importResultSchema = z.object({

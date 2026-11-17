@@ -95,8 +95,9 @@ export function TrackingImportModal({ onClose, onImported, open }: TrackingImpor
         {!result ? (
           <>
             <p className="text-sm text-muted-foreground">
-              Use the file from <strong className="text-foreground">Download Excel</strong>: edit statuses, locations and dates on the GOING and
-              RETURN sheets, then upload it here. You will see every change before anything is saved. Empty cells leave the saved value as it is.
+              Use a file from <strong className="text-foreground">Download Excel</strong> (any tab): edit statuses, locations and dates on the
+              GOING and RETURN sheets, then upload it here. You will see every change before anything is saved. Empty cells leave the saved value
+              as it is. Keep rows on their own sheet and don't copy rows between files — each row carries a hidden ID.
             </p>
             <FilePickerCard
               key={pickerKey}

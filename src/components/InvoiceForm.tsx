@@ -170,9 +170,9 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
     }
   }, [bookingId, invoiceType, isEditMode])
 
-  const isFinished = (bt: EligibleInvoiceTruck) => Boolean(bt.offloading_date) || bt.current_status === 'completed'
+  const isFinished = (bt: EligibleInvoiceTruck) => Boolean(bt.offloading_date) || bt.current_status === 'offloaded'
 
-  /** Partial invoicing (contract 2.4): tick only trucks that have offloaded or completed. */
+  /** Partial invoicing (contract 2.4): tick only trucks that have offloaded. */
   function selectFinishedOnly() {
     truckState.eligible.forEach((bt) => {
       const id = bt.id.toString()
@@ -345,7 +345,7 @@ function InvoiceForm({ invoice, onSaved }: InvoiceFormProps) {
             You can invoice part of the booking. Trucks you don't tick stay available for a later {typeConfig.label} invoice.
           </p>
           <Button type="button" variant="tonal" onClick={selectFinishedOnly} className="px-3 py-1.5 text-xs">
-            Select offloaded / completed only
+            Select offloaded only
           </Button>
         </div>
       )}

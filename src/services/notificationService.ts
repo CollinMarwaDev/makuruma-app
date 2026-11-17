@@ -2,7 +2,7 @@ import { apiClient } from './apiClient'
 
 export interface AppNotification {
   created_at: string
-  data: { booking_number?: string; booking_truck_id?: number; kind: string; message: string; title: string; truck?: string }
+  data: { booking_number?: string; booking_truck_id?: number; expense_order_id?: number; kind: string; message: string; title: string; truck?: string }
   id: string
   read_at: string | null
 }

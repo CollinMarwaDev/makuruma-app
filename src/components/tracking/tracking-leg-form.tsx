@@ -64,9 +64,6 @@ export const TrackingLegForm: FC<TrackingLegFormProps> = ({ legId, onChanged }) 
           <StatusBadge status={leg.current_status} />
           {leg.is_overdue && <Badge variant="danger" label="Past ETA" />}
           {leg.pod_overdue && <Badge variant="danger" label="POD overdue" />}
-          {leg.auto_completed_at && (
-            <Badge hideDotIndicator variant="disabled" label={`Auto-completed ${leg.auto_completed_at.slice(0, 10)}`} />
-          )}
         </div>
       </Card>
 

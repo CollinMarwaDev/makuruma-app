@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ArrowDownTrayIcon, ArrowUpTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
+import { ArrowUpTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
 import type { TrackingLeg } from '~/types/tracking'
 import { downloadTrackingExcel, downloadTrackingReport, fetchTrackingLegs } from '~/services/trackingService'
 import { useAuth } from '~/hooks/useAuth'
-import { exportTrackingCsv } from '~/utils/csvExports'
 import { TrackingLegForm } from '~/components/tracking/tracking-leg-form'
 import { TrackingImportModal } from '~/components/tracking/tracking-import-modal'
 import { TrackingTableSection } from '~/components/tracking/tracking-table-section'
 import { useTrackingList } from '~/components/tracking/use-tracking-list'
-import { useTrackingStatuses } from '~/components/tracking/use-tracking-statuses'
 import { Button, ButtonLink } from '~/global/components/button'
 import { ErrorFallback, GeneralErrorBoundary } from '~/global/components/error-boundary'
 import PageHeader from '~/global/components/page-header'
@@ -19,7 +17,6 @@ import { toast } from '~/global/utils/toast'
 
 function Tracking() {
   const { user } = useAuth()
-  const { statusLabel } = useTrackingStatuses()
   const [legs, setLegs] = useState<TrackingLeg[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
@@ -60,7 +57,7 @@ function Tracking() {
   async function handleExportExcel() {
     setIsExportingExcel(true)
     try {
-      await downloadTrackingExcel()
+      await downloadTrackingExcel(filtered.map((leg) => leg.id))
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
@@ -83,17 +80,19 @@ function Tracking() {
               <Cog6ToothIcon className="size-4" /> Manage statuses
             </ButtonLink>
           )}
-          <Button variant="outline" disabled={filtered.length === 0} onClick={() => exportTrackingCsv(filtered, statusLabel)} className="px-4">
-            <ArrowDownTrayIcon className="size-4" /> Export CSV ({filtered.length})
-          </Button>
-          <Button variant="outline" loading={isExportingExcel} loadingText="Exporting…" onClick={() => void handleExportExcel()} className="px-4">
-            <TableCellsIcon className="size-4" /> Download Excel
+          <Button variant="outline" disabled={filtered.length === 0} loading={isExportingExcel} loadingText="Preparing…" onClick={() => void handleExportExcel()} className="px-4">
+            <TableCellsIcon className="size-4" /> Download Excel ({filtered.length})
           </Button>
           <Button variant="outline" onClick={() => setIsImportOpen(true)} className="px-4">
             <ArrowUpTrayIcon className="size-4" /> Upload Excel
           </Button>
         </div>
       </div>
+
+      <p className="-mt-3 text-xs text-muted-foreground">
+        Bulk update: <strong className="text-foreground">Download Excel</strong> (the trucks on this tab and filters) → edit status, location and
+        dates in Excel → <strong className="text-foreground">Upload Excel</strong> → check the preview → save. Blank cells are left as they are.
+      </p>
 
       {error && !loading ? (
         <ErrorFallback error={error} ctaLabel="Try again" ctaLink="/tracking" />

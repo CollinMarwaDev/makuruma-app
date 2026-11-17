@@ -35,7 +35,7 @@ export const LegDatesSection: FC<{ leg: TrackingLeg; onUpdated: (leg: TrackingLe
   return (
     <LegSection
       title="Loading & offloading"
-      description="Dates must follow the trip order. Offloading starts the 5-day POD and auto-complete countdown."
+      description="Dates must follow the trip order. The offloading date starts the 5-day POD and ready-for-invoicing countdown."
     >
       <InlineError message={error} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 ">

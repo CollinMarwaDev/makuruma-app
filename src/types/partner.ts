@@ -11,7 +11,10 @@ export interface Client {
 export interface Vendor {
   id: number
   company_name: string
-  vendor_type: 'fuel' | 'e-seal'
+  /** Slug of a vendor type from the managed list, e.g. 'fuel'. */
+  vendor_type: string
+  /** Default for its fuel orders: paid on the spot or billed later. */
+  payment_mode: 'on_spot' | 'bill'
   phone: string | null
   location: string | null
 }

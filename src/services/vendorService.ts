@@ -3,8 +3,10 @@ import { apiClient } from './apiClient'
 
 export interface VendorFormData {
   company_name: string
-  vendor_type: 'fuel' | 'e-seal'
+  vendor_type: string
+  payment_mode: 'on_spot' | 'bill'
   phone: string
+  location: string
 }
 
 export async function fetchVendors(): Promise<Vendor[]> {

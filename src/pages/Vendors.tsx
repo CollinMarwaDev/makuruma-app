@@ -8,7 +8,7 @@ function Vendors() {
   return (
     <CrudListPage
       title="Vendors"
-      subtitle="Fuel and e-seal suppliers you buy from and pay."
+      subtitle="Fuel, ECIL and other suppliers you buy from and pay. Manage vendor types in Expense settings."
       entity="vendor"
       retryLink="/vendors"
       fetchRows={fetchVendors}

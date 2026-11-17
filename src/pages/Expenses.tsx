@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowDownTrayIcon, BanknotesIcon, CheckIcon, EyeIcon, PencilSquareIcon, TableCellsIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, BanknotesIcon, CheckIcon, Cog6ToothIcon, CurrencyDollarIcon, EyeIcon, PencilSquareIcon, TableCellsIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import type { ExpenseOrder } from '~/types/expense'
 import {
   approveExpenseOrder,
@@ -12,9 +12,9 @@ import {
   markExpensePaid,
   rejectExpenseOrder,
 } from '~/services/expenseService'
-import { LINE_CATEGORIES } from '~/constants/expenseLineCategories'
+import { LINE_CATEGORIES, expenseTypeLabel } from '~/constants/expenseLineCategories'
 import { useAuth } from '~/hooks/useAuth'
-import ExpenseForm from '~/components/ExpenseForm'
+import ExpenseForm from '~/components/expense-form/expense-form'
 import { DetailsSlideOver } from '~/components/common/details-slide-over'
 import { FormModal } from '~/components/common/form-modal'
 import { ListPage } from '~/components/common/list-page'
@@ -24,7 +24,10 @@ import { useDetailsParam } from '~/components/common/use-details-param'
 import { useFetchList } from '~/components/common/use-fetch-list'
 import { ExpenseDetails } from '~/components/expenses/expense-details'
 import { ExpenseStatusBadge } from '~/components/expenses/expense-status-badge'
-import { Button } from '~/global/components/button'
+import { FuelDownloadDialog } from '~/components/expenses/fuel-download-dialog'
+import { PricePendingBadge } from '~/components/expenses/price-pending-badge'
+import { PriceUpdateDialog } from '~/components/expenses/price-update-dialog'
+import { Button, ButtonLink } from '~/global/components/button'
 import { DateRange } from '~/global/components/date-range'
 import type { DropdownMenuType } from '~/global/components/dropdown'
 import { TabLinks } from '~/global/components/tab-link'
@@ -45,6 +48,7 @@ const VIEWS = [
 
 const HEADERS: ColumnHeader[] = [
   { id: 'order', label: 'Order' },
+  { id: 'type', label: 'Type' },
   { canSort: false, id: 'reference', label: 'For' },
   { canSort: false, id: 'people', label: 'Created / initiated by' },
   { id: 'payment_date', label: 'Payment date' },
@@ -56,20 +60,28 @@ const LIST: ListConfig<ExpenseOrder> = {
   defaultSort: { by: 'created', order: 'desc' },
   filters: {
     from: (e, v) => e.created_at.slice(0, 10) >= v,
-    line: (e, v) => e.lines.some((l) => l.line_category === v),
+    line: (e, v) => e.expense_type === v,
+    price: (e, v) => (v === 'overdue' ? e.price_overdue : e.pending_price),
     status: (e, v) => e.status === v,
     to: (e, v) => e.created_at.slice(0, 10) <= v,
     view: (e, v) => v === 'all' || e.category === v,
   },
-  search: (e) => [e.order_number, e.reference_no, e.booking?.booking_number, e.booking?.client.company_name, e.truck?.reg_no, e.creator.name, e.initiated_by],
+  search: (e) => [e.order_number, e.reference_no, e.subcategory?.name, ...e.bookings.flatMap((b) => [b.booking_number, b.client.company_name]), e.truck?.reg_no, e.creator.name, e.initiated_by],
   sort: {
     created: (e) => e.created_at,
     order: (e) => e.order_number,
     payment_date: (e) => e.payment_date ?? '',
     status: (e) => e.status,
     total: (e) => Number(e.total_amount),
+    type: (e) => e.expense_type,
   },
 }
+
+/** Bookings, truck or "Office" the order is for. */
+const orderFor = (e: ExpenseOrder) => (e.bookings.length ? e.bookings.map((b) => b.booking_number).join(', ') : (e.truck?.reg_no ?? 'Office'))
+
+/** "$630" or "-$140" (Vibali Congo, kept in USD). */
+const usd = (value: string) => `${Number(value) < 0 ? '-' : ''}$${Math.abs(Number(value)).toLocaleString()}`
 
 /** Run a download and show failures as a toast. */
 const safely = (run: () => Promise<void>) => () =>
@@ -80,12 +92,15 @@ function Expenses() {
   const role = user?.role?.slug ?? ''
   const canApprove = role === 'manager' || role === 'admin'
   const canPay = role === 'accountant' || role === 'admin'
+  const canManageSettings = canPay || role === 'manager'
   const confirmAction = useConfirmAction()
   const { data: expenses, error, loading, refresh } = useFetchList(fetchAll)
   const { closeDetails, openDetails } = useDetailsParam()
   const [, setParams] = useSearchParamsState<{ currentPage?: string; from?: string; to?: string }>()
   const [searchParams] = useSearchParams()
   const [form, setForm] = useState<{ expense: ExpenseOrder | null } | null>(null)
+  const [pricing, setPricing] = useState<ExpenseOrder | null>(null)
+  const [downloading, setDownloading] = useState<ExpenseOrder | null>(null)
 
   const counts = useMemo(
     () => Object.fromEntries(VIEWS.map((v) => [v.value, v.value === 'all' ? expenses.length : expenses.filter((e) => e.category === v.value).length])),
@@ -139,17 +154,22 @@ function Expenses() {
       type: 'success',
     })
 
+  /** Fuel orders ask whether the PDF shows prices (req. 11). */
+  const downloadPdf = (e: ExpenseOrder) => (e.expense_type === 'fuel' ? () => setDownloading(e) : safely(() => downloadExpenseOrder(e)))
+  const canPrice = (e: ExpenseOrder) => e.expense_type === 'fuel' && (e.status === 'pending' || e.status === 'approved') && !e.is_legacy_mixed
+
   const menuItems = (e: ExpenseOrder): DropdownMenuType[] => [
     { icon: EyeIcon, label: 'View', onClick: () => openDetails(e.id) },
-    ...(e.status === 'pending' ? [{ icon: PencilSquareIcon, label: 'Edit', onClick: () => edit(e) }] : []),
+    ...(e.status === 'pending' && !e.is_legacy_mixed ? [{ icon: PencilSquareIcon, label: 'Edit', onClick: () => edit(e) }] : []),
     ...(e.status === 'pending' && canApprove
       ? [
           { icon: CheckIcon, label: 'Approve', onClick: () => void approve(e) },
           { icon: XMarkIcon, label: 'Reject', onClick: () => void reject(e) },
         ]
       : []),
-    ...(e.status === 'approved' && canPay ? [{ icon: BanknotesIcon, label: 'Mark as paid', onClick: () => void markPaid(e) }] : []),
-    { icon: ArrowDownTrayIcon, label: 'Download PDF', onClick: safely(() => downloadExpenseOrder(e)) },
+    ...(canPrice(e) ? [{ icon: CurrencyDollarIcon, label: e.pending_price ? 'Enter fuel prices' : 'Change fuel prices', onClick: () => setPricing(e) }] : []),
+    ...(e.status === 'approved' && canPay && !e.pending_price ? [{ icon: BanknotesIcon, label: 'Mark as paid', onClick: () => void markPaid(e) }] : []),
+    { icon: ArrowDownTrayIcon, label: 'Download PDF', onClick: downloadPdf(e) },
     { icon: TableCellsIcon, label: 'Download Excel (all lines)', onClick: safely(() => downloadExpenseOrderExcel(e)) },
     ...[...new Set(e.lines.map((l) => l.line_category))].map((cat) => ({
       icon: TableCellsIcon,
@@ -165,7 +185,14 @@ function Expenses() {
   return (
     <ListPage
       title="Expenses"
-      subtitle="Trip, office and truck expense orders: approve, reject and pay."
+      subtitle="Fuel, Vibali and other expense orders for trips, trucks and the office: approve, reject and pay."
+      actions={
+        canManageSettings && (
+          <ButtonLink to="/expenses/settings" variant="text" className="px-4">
+            <Cog6ToothIcon className="size-4" /> Expense settings
+          </ButtonLink>
+        )
+      }
       error={error}
       loading={loading}
       retryLink="/expenses"
@@ -178,9 +205,10 @@ function Expenses() {
               <>
                 {e.status === 'pending' && canApprove && <Button variant="outline" onClick={() => void reject(e)}>Reject</Button>}
                 {e.status === 'pending' && canApprove && <Button variant="success" onClick={() => void approve(e)}>Approve</Button>}
-                {e.status === 'approved' && canPay && <Button variant="success" onClick={() => void markPaid(e)}>Mark as paid</Button>}
-                {e.status === 'pending' && <Button onClick={() => edit(e)}>Edit</Button>}
-                {e.status !== 'pending' && <Button variant="outline" onClick={safely(() => downloadExpenseOrder(e))}>Download PDF</Button>}
+                {canPrice(e) && <Button variant="outline" onClick={() => setPricing(e)}>{e.pending_price ? 'Enter prices' : 'Change prices'}</Button>}
+                {e.status === 'approved' && canPay && !e.pending_price && <Button variant="success" onClick={() => void markPaid(e)}>Mark as paid</Button>}
+                {e.status === 'pending' && !e.is_legacy_mixed && <Button onClick={() => edit(e)}>Edit</Button>}
+                {e.status !== 'pending' && <Button variant="outline" onClick={downloadPdf(e)}>Download PDF</Button>}
               </>
             )}
           >
@@ -197,6 +225,15 @@ function Expenses() {
               }}
             />
           </FormModal>
+          <PriceUpdateDialog
+            expense={pricing}
+            onClose={() => setPricing(null)}
+            onSaved={() => {
+              setPricing(null)
+              refresh()
+            }}
+          />
+          <FuelDownloadDialog expense={downloading} onClose={() => setDownloading(null)} />
         </>
       }
     >
@@ -228,6 +265,14 @@ function Expenses() {
             },
             { label: 'Expense type', onClick: () => undefined, subItems: LINE_CATEGORIES.map((c) => ({ label: c.label, onClick: () => setFilter('line', c.value) })) },
             {
+              label: 'Fuel price',
+              onClick: () => undefined,
+              subItems: [
+                { label: 'Price pending', onClick: () => setFilter('price', 'pending') },
+                { label: 'Overdue (14+ days)', onClick: () => setFilter('price', 'overdue') },
+              ],
+            },
+            {
               content: (close) => (
                 <div className="w-72 p-2">
                   <p className="mb-2 text-xs text-muted-foreground">Created between</p>
@@ -254,14 +299,26 @@ function Expenses() {
                   {e.reference_no ? ` · ${e.reference_no}` : ''}
                 </p>
               </RecordCell>
-              <RecordCell className="text-muted-foreground">{e.booking?.booking_number ?? e.truck?.reg_no ?? '—'}</RecordCell>
+              <RecordCell className="whitespace-nowrap">
+                {expenseTypeLabel(e.expense_type)}
+                {e.subcategory && <span className="block text-xs text-muted-foreground">{e.subcategory.name}</span>}
+              </RecordCell>
+              <RecordCell className="text-muted-foreground">{orderFor(e)}</RecordCell>
               <RecordCell className="text-muted-foreground">
                 <p>{e.creator.name}</p>
                 <p className="text-xs">{e.initiated_by ?? '—'}</p>
               </RecordCell>
               <RecordCell className="whitespace-nowrap text-muted-foreground">{e.payment_date?.slice(0, 10) ?? '—'}</RecordCell>
-              <RecordCell className="font-medium">{Number(e.total_amount).toLocaleString()}</RecordCell>
-              <RecordCell><ExpenseStatusBadge status={e.status} /></RecordCell>
+              <RecordCell className="font-medium">
+                {Number(e.total_amount) !== 0 || Number(e.usd_total) === 0 ? Number(e.total_amount).toLocaleString() : usd(e.usd_total)}
+                {Number(e.usd_total) !== 0 && Number(e.total_amount) !== 0 && <span className="block text-xs font-normal text-muted-foreground">+ {usd(e.usd_total)}</span>}
+              </RecordCell>
+              <RecordCell>
+                <div className="flex flex-col items-start gap-1">
+                  <ExpenseStatusBadge status={e.status} />
+                  <PricePendingBadge expense={e} />
+                </div>
+              </RecordCell>
             </>
           )}
         />

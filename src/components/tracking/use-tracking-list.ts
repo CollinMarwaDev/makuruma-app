@@ -4,7 +4,7 @@ import { useSearchParamsState } from '~/global/utils/r3/hooks'
 
 export const TRACKING_PAGE_SIZE = 10
 
-export type TrackingView = 'active' | 'go' | 'return' | 'completed'
+export type TrackingView = 'active' | 'go' | 'return' | 'offloaded'
 
 type ListParams = {
   attention?: 'yes'
@@ -15,10 +15,12 @@ type ListParams = {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   status?: string
-  view?: TrackingView
+  /** `completed` is the old name of the Offloaded tab (links saved before 18 Nov 2026). */
+  view?: TrackingView | 'completed'
 }
 
-const isCompleted = (leg: TrackingLeg) => leg.current_status === 'completed'
+/** Offloaded is a leg's final status (client request 17 Nov 2026). */
+const isOffloaded = (leg: TrackingLeg) => leg.current_status === 'offloaded'
 export const needsAttention = (leg: TrackingLeg) => leg.is_overdue || leg.pod_overdue
 
 const SORT_VALUE: Record<string, (leg: TrackingLeg) => string | number> = {
@@ -31,17 +33,17 @@ const SORT_VALUE: Record<string, (leg: TrackingLeg) => string | number> = {
 /** Tracking list state in the URL: view tab, search, filters, sort and page. */
 export function useTrackingList(legs: TrackingLeg[]) {
   const [params, setParams] = useSearchParamsState<ListParams>()
-  const view: TrackingView = params.view ?? 'active'
+  const view: TrackingView = params.view === 'completed' ? 'offloaded' : (params.view ?? 'active')
 
   return useMemo(() => {
     const inView = (leg: TrackingLeg) =>
-      view === 'completed' ? isCompleted(leg) : !isCompleted(leg) && (view === 'active' || leg.booking.direction === view)
+      view === 'offloaded' ? isOffloaded(leg) : !isOffloaded(leg) && (view === 'active' || leg.booking.direction === view)
 
     const counts: Record<TrackingView, number> = {
-      active: legs.filter((l) => !isCompleted(l)).length,
-      completed: legs.filter(isCompleted).length,
-      go: legs.filter((l) => !isCompleted(l) && l.booking.direction === 'go').length,
-      return: legs.filter((l) => !isCompleted(l) && l.booking.direction === 'return').length,
+      active: legs.filter((l) => !isOffloaded(l)).length,
+      go: legs.filter((l) => !isOffloaded(l) && l.booking.direction === 'go').length,
+      offloaded: legs.filter(isOffloaded).length,
+      return: legs.filter((l) => !isOffloaded(l) && l.booking.direction === 'return').length,
     }
 
     const term = params.q?.trim().toLowerCase() ?? ''

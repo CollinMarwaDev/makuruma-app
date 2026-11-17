@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Button } from '~/global/components/button'
 import { createVendor, updateVendor } from '../services/vendorService'
 import type { Vendor } from '../types/partner'
+import { useVendorTypes } from '~/components/vendors/use-vendor-types'
 
 interface VendorFormProps {
   vendor?: Vendor | null
@@ -12,7 +13,9 @@ function VendorForm({ vendor, onSaved }: VendorFormProps) {
   const isEditMode = !!vendor
 
   const [companyName, setCompanyName] = useState(vendor?.company_name ?? '')
-  const [vendorType, setVendorType] = useState<'fuel' | 'e-seal'>(vendor?.vendor_type ?? 'fuel')
+  const { types } = useVendorTypes()
+  const [vendorType, setVendorType] = useState(vendor?.vendor_type ?? 'fuel')
+  const [paymentMode, setPaymentMode] = useState<'on_spot' | 'bill'>(vendor?.payment_mode ?? 'bill')
   const [phone, setPhone] = useState(vendor?.phone ?? '')
   const [location, setLocation] = useState(vendor?.location ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -24,7 +27,7 @@ function VendorForm({ vendor, onSaved }: VendorFormProps) {
     setIsSubmitting(true)
 
     try {
-      const payload = { company_name: companyName, vendor_type: vendorType, phone, location }
+      const payload = { company_name: companyName, location, payment_mode: paymentMode, phone, vendor_type: vendorType }
       if (isEditMode) {
         await updateVendor(vendor.id, payload)
       } else {
@@ -60,11 +63,14 @@ function VendorForm({ vendor, onSaved }: VendorFormProps) {
           <label className="block text-sm font-medium text-foreground mb-1">Vendor Type</label>
           <select
             value={vendorType}
-            onChange={(e) => setVendorType(e.target.value as 'fuel' | 'e-seal')}
+            onChange={(e) => setVendorType(e.target.value)}
             className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
           >
-            <option value="fuel">Fuel</option>
-            <option value="e-seal">E-seal</option>
+            {types
+              .filter((t) => t.is_active || t.slug === vendorType)
+              .map((t) => (
+                <option key={t.id} value={t.slug}>{t.name}</option>
+              ))}
           </select>
         </div>
         <div>
@@ -76,6 +82,20 @@ function VendorForm({ vendor, onSaved }: VendorFormProps) {
             className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
           />
         </div>
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="vendor-payment-mode" className="block text-sm font-medium text-foreground mb-1">Usual payment</label>
+        <select
+          id="vendor-payment-mode"
+          value={paymentMode}
+          onChange={(e) => setPaymentMode(e.target.value as 'on_spot' | 'bill')}
+          className="w-full bg-secondary ring-1 ring-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand"
+        >
+          <option value="bill">Bill-based — pay later, price filled in when accounts are done</option>
+          <option value="on_spot">On the spot — paid in cash, price known</option>
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">Prefills the payment on new fuel orders for this vendor.</p>
       </div>
 
       <div className="mb-6">

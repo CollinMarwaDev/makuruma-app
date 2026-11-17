@@ -92,7 +92,8 @@ function Dashboard() {
 
 function DashboardContent({ summary }: { summary: DashboardSummary }) {
   const { bookings, compliance, expenses, fleet, invoicing, tracking } = summary
-  const onTheRoad = tracking.in_transit + tracking.at_border + tracking.offloading
+  const atBorder = tracking.clearing + tracking.waiting_to_cross
+  const onTheRoad = tracking.in_transit + atBorder + tracking.waiting_to_offload
   const troubled = tracking.delayed + tracking.breakdown
   const complianceTotal = compliance.expired + compliance.expiring_soon
 
@@ -121,7 +122,7 @@ function DashboardContent({ summary }: { summary: DashboardSummary }) {
           iconClassName="bg-accent/15 text-accent"
           content={
             <div className="flex flex-wrap gap-1.5">
-              <Badge variant="default" label={`${tracking.at_border} at border`} />
+              <Badge variant="default" label={`${atBorder} clearing / waiting to cross`} />
               <Badge variant={troubled ? 'danger' : 'success'} label={troubled ? `${troubled} delayed / breakdown` : 'No delays'} />
             </div>
           }

@@ -9,12 +9,12 @@ type TrackingCounts = DashboardSummary['tracking']
 /** Status groups shown on the dashboard, in the order a trip moves. */
 const GROUPS: { keys: string[]; label: string; tone: string }[] = [
   { keys: ['pending'], label: 'Waiting / off duty', tone: 'bg-status-grey-pc' },
-  { keys: ['on_route_to_loading', 'loading'], label: 'To / at loading', tone: 'bg-secondary-500' },
+  { keys: ['on_route_to_loading', 'waiting_to_load', 'loaded_waiting_documents'], label: 'To loading / loading', tone: 'bg-secondary-500' },
   { keys: ['in_transit'], label: 'In transit', tone: 'bg-primary' },
-  { keys: ['at_border'], label: 'At border', tone: 'bg-accent' },
-  { keys: ['offloading'], label: 'Offloading', tone: 'bg-secondary-400' },
+  { keys: ['clearing', 'waiting_to_cross'], label: 'Clearing / waiting to cross', tone: 'bg-accent' },
+  { keys: ['waiting_to_offload'], label: 'Waiting to offload', tone: 'bg-secondary-400' },
   { keys: ['delayed', 'breakdown'], label: 'Delayed / breakdown', tone: 'bg-status-red' },
-  { keys: ['completed'], label: 'Completed', tone: 'bg-status-green' },
+  { keys: ['offloaded'], label: 'Offloaded', tone: 'bg-status-green' },
 ]
 
 /** Where the fleet is right now, by tracking status. */

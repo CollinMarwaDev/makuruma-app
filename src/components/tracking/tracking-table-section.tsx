@@ -33,10 +33,10 @@ const HEADERS: ColumnHeader[] = [
 
 /** View tabs live in the URL (`?view=`), so they use the global TabLinks. Switching a tab clears search and filters. */
 const VIEWS: { label: string; matchPattern: RegExp; value: TrackingView }[] = [
-  { label: 'All active', matchPattern: /^\/tracking(?![^#]*[?&]view=(go|return|completed)\b)/, value: 'active' },
+  { label: 'All active', matchPattern: /^\/tracking(?![^#]*[?&]view=(go|return|offloaded|completed)\b)/, value: 'active' },
   { label: 'Go', matchPattern: /^\/tracking\?(.*&)?view=go\b/, value: 'go' },
   { label: 'Return', matchPattern: /^\/tracking\?(.*&)?view=return\b/, value: 'return' },
-  { label: 'Completed', matchPattern: /^\/tracking\?(.*&)?view=completed\b/, value: 'completed' },
+  { label: 'Offloaded', matchPattern: /^\/tracking\?(.*&)?view=(offloaded|completed)\b/, value: 'offloaded' },
 ]
 
 const day = (value: string | null) => (value ? value.slice(0, 10) : '—')
@@ -83,8 +83,8 @@ export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading,
         <EmptyState
           className="py-10"
           ignoreParams={['currentPage', 'sortBy', 'sortOrder', 'view']}
-          noDataTitle={view === 'completed' ? 'No completed trips yet' : 'No trucks on the road'}
-          noDataText={view === 'completed' ? 'Completed legs appear here.' : 'Trucks appear here once they are booked on a Go or Return trip.'}
+          noDataTitle={view === 'offloaded' ? 'No offloaded trucks yet' : 'No trucks on the road'}
+          noDataText={view === 'offloaded' ? 'Legs with the status Offloaded appear here.' : 'Trucks appear here once they are booked on a Go or Return trip.'}
           searchNotFoundText="No truck matches your search or filters. Clear a filter chip to see more."
         />
       ) : (
@@ -113,7 +113,6 @@ export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading,
                       <StatusBadge status={leg.current_status} />
                       {leg.is_overdue && <Badge variant="danger" label="Past ETA" />}
                       {leg.pod_overdue && <Badge variant="danger" label="POD overdue" />}
-                      {leg.auto_completed_at && <Badge hideDotIndicator variant="disabled" label="Auto" />}
                     </div>
                   </LegTable.Cell>
                   <LegTable.Cell className="text-muted-foreground">{leg.current_location ?? '—'}</LegTable.Cell>

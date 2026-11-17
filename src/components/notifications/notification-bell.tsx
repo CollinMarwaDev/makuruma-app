@@ -9,7 +9,7 @@ import { cn } from '~/global/utils/cn'
 
 const REFRESH_MS = 60_000
 
-/** In-app notifications (contract 2.2 D-6/D-7): auto-completed legs and overdue PODs. Polls every minute. */
+/** In-app notifications: legs ready for invoicing (contract 2.2 D-6), overdue PODs (D-7), fuel prices pending. Polls every minute. */
 export const NotificationBell: FC<{ className?: string; showLabel?: boolean }> = ({ className, showLabel = false }) => {
   const navigate = useNavigate()
   const [items, setItems] = useState<AppNotification[]>([])
@@ -40,6 +40,7 @@ export const NotificationBell: FC<{ className?: string; showLabel?: boolean }> =
     if (!item.read_at) await markNotificationRead(item.id).catch(() => undefined)
     reload()
     if (item.data.booking_truck_id) navigate(`/tracking?leg=${item.data.booking_truck_id}`)
+    else if (item.data.expense_order_id) navigate(`/expenses?details=${item.data.expense_order_id}`)
   }
 
   async function readAll() {

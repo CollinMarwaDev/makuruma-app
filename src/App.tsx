@@ -17,6 +17,7 @@ import Vendors from './pages/Vendors'
 import Bookings from './pages/Bookings'
 import Tracking from './pages/Tracking'
 import TrackingStatuses from './pages/TrackingStatuses'
+import ExpenseSettings from './pages/ExpenseSettings'
 import Expenses from './pages/Expenses'
 import Invoices from './pages/Invoices'
 import Assets from './pages/Assets'
@@ -76,6 +77,7 @@ function AppRoutes() {
 <Route path="/clients" element={<Clients />} />
 <Route path="/vendors" element={<Vendors />} />
 <Route path="/expenses" element={<Expenses />} />
+<Route path="/expenses/settings" element={<ExpenseSettings />} />
 <Route path="/invoices" element={<Invoices />} />
 <Route path="/users" element={<Users />} />
 <Route path="/reports" element={<Reports />} />

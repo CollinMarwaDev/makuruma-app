@@ -30,13 +30,15 @@ export interface DashboardSummary {
   tracking: Record<string, number> & {
     pending: number
     on_route_to_loading: number
-    loading: number
+    waiting_to_load: number
+    loaded_waiting_documents: number
     in_transit: number
-    at_border: number
-    offloading: number
+    clearing: number
+    waiting_to_cross: number
+    waiting_to_offload: number
     delayed: number
     breakdown: number
-    completed: number
+    offloaded: number
   }
   expenses: {
     pending_count: number
