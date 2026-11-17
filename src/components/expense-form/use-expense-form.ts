@@ -10,6 +10,7 @@ import { fetchRouteTemplates } from '~/services/routeTemplateService'
 import { fetchTrucks } from '~/services/truckService'
 import { fetchVendors } from '~/services/vendorService'
 import { useAuth } from '~/hooks/useAuth'
+import type { TruckOption } from '~/components/expense-form/truck-set-field'
 import { buildLines, changedPrices, newRow, rowTotal, rowsFromLines, rowsProblem, type LineRow } from '~/components/expense-form/expense-form-utils'
 import { buildVibaliLines, rowsFromTemplate, vibaliProblem, vibaliTotals } from '~/components/expense-form/vibali-form-utils'
 
@@ -30,7 +31,11 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
   const [category, setCategory] = useState<ExpenseCategory>(expense?.category ?? 'trip')
   const [referenceNo, setReferenceNo] = useState(expense?.reference_no ?? '')
   const [bookingIds, setBookingIds] = useState<number[]>(expense?.bookings.map((b) => b.id) ?? [])
-  const [truckId, setTruckId] = useState(expense?.truck ? String(expense.truck.id) : '')
+  /** A Truck order's trucks (client request 17 Nov: several, picked per line like Trip lines). */
+  const [truckIds, setTruckIds] = useState<string[]>(() => {
+    const fromLines = [...new Set(expense?.lines.flatMap((l) => (l.truck ? [String(l.truck.id)] : [])) ?? [])]
+    return fromLines.length || !expense?.truck ? fromLines : [String(expense.truck.id)]
+  })
   const [paymentAccountId, setPaymentAccountId] = useState(expense?.payment_account_id ? String(expense.payment_account_id) : '')
   const [paymentDate, setPaymentDate] = useState(expense?.payment_date?.slice(0, 10) ?? '')
   const [vendorId, setVendorId] = useState(expense?.vendor_id ? String(expense.vendor_id) : '')
@@ -103,10 +108,26 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
   const changedPriceGroups = isEditMode && isFuel ? changedPrices(initialRows, rows) : []
   const missingPrice = isFuel && rows.some((r) => r.unitRate.trim() === '')
 
-  /** Driver's name per booking truck id, to prefill fuel lines (req. 7). */
+  /** Driver's name per line-truck id (booking truck on a Trip, truck on a Truck order), to prefill fuel lines (req. 7). */
   const driverOf = useMemo(
-    () => Object.fromEntries(bookingTrucks.map(({ bt }) => [String(bt.id), bt.driver?.full_name ?? bt.truck.driver?.full_name ?? ''])),
-    [bookingTrucks]
+    () =>
+      category === 'truck'
+        ? Object.fromEntries(trucks.map((t) => [String(t.id), t.driver?.full_name ?? '']))
+        : Object.fromEntries(bookingTrucks.map(({ bt }) => [String(bt.id), bt.driver?.full_name ?? bt.truck.driver?.full_name ?? ''])),
+    [bookingTrucks, category, trucks]
+  )
+
+  /** Trucks a line can apply to: the selected bookings' trucks (Trip) or the order's trucks (Truck). */
+  const lineTruckOptions = useMemo<TruckOption[]>(
+    () =>
+      category === 'truck'
+        ? trucks.filter((t) => truckIds.includes(String(t.id))).map((t) => ({ detail: t.driver?.full_name, id: String(t.id), regNo: t.reg_no }))
+        : bookingTrucks.map(({ booking, bt }) => ({
+            detail: [bt.driver?.full_name ?? bt.truck.driver?.full_name, booking.booking_number].filter(Boolean).join(' · '),
+            id: String(bt.id),
+            regNo: bt.truck.reg_no,
+          })),
+    [bookingTrucks, category, truckIds, trucks]
   )
 
   /** The first fuel vendor chosen sets On-spot / Bill unless the user picked one (req. 8). */
@@ -120,10 +141,15 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
     setPaymentModeTouched(true)
   }
 
-  function changeTruck(id: string) {
-    setTruckId(id)
-    const driver = trucks.find((t) => String(t.id) === id)?.driver?.full_name ?? ''
-    setRows((prev) => prev.map((row) => (row.driver ? row : { ...row, driver })))
+  function changeTrucks(ids: string[]) {
+    setTruckIds(ids)
+    setRows((prev) => prev.map((row) => ({ ...row, truckIds: row.truckIds.filter((id) => ids.includes(id)) })))
+  }
+
+  /** Trip lines hold booking-truck ids and Truck lines truck ids, so switching clears the lines' trucks. */
+  function changeCategory(next: ExpenseCategory) {
+    setCategory(next)
+    setRows((prev) => prev.map((row) => ({ ...row, truckIds: [] })))
   }
 
   /** Start the lines from a template: a copy the user can edit (req. 13). */
@@ -178,7 +204,7 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
     if (!referenceNo.trim()) return 'Enter a unique expense reference number.'
     if (type === 'mengine' && !subcategoryId && !isEditMode) return 'Choose the subcategory (e.g. Weighbridge, GCLA).'
     if (category === 'trip' && bookingIds.length === 0) return 'Select at least one booking for a Trip expense.'
-    if (category === 'truck' && !truckId) return 'Select a truck for a Truck expense.'
+    if (category === 'truck' && truckIds.length === 0) return 'Select at least one truck for a Truck expense.'
     if (isFuel && paymentMode === 'on_spot' && missingPrice) return 'Fuel paid on the spot needs the price per litre on every line.'
     if (changedPriceGroups.length > 0 && !priceChangeReason.trim()) return 'Give a reason for changing a fuel price that was already set.'
     if (isVibaliForm) {
@@ -211,7 +237,6 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
       payment_mode: isFuel ? paymentMode : undefined,
       price_change_reason: changedPriceGroups.length > 0 ? priceChangeReason.trim() : undefined,
       reference_no: referenceNo.trim(),
-      truck_id: category === 'truck' ? truckId : undefined,
       vendor_id: type.startsWith('vibali') && vendorId ? Number(vendorId) : undefined,
     }
 
@@ -242,10 +267,12 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
     changeFormKind,
     chooseParent,
     changePaymentMode,
-    changeTruck,
+    changeCategory,
+    changeTrucks,
     changeType,
     changedPriceGroups,
     driverOf,
+    lineTruckOptions,
     error,
     initiatedBy: expense?.initiated_by ?? user?.name ?? '',
     isEditMode,
@@ -286,7 +313,7 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
     templates,
     total,
     totals,
-    truckId,
+    truckIds,
     trucks,
     type,
     updateRow,

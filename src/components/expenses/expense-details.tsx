@@ -5,6 +5,7 @@ import { Card } from '~/global/components/card'
 import { LabelValueListItem } from '~/global/components/label-value-list-item'
 import { ExpenseStatusBadge } from '~/components/expenses/expense-status-badge'
 import { PricePendingBadge } from '~/components/expenses/price-pending-badge'
+import { truckRegNos } from '~/components/expenses/expense-trucks'
 
 const tzs = (value: string | number) => `TZS ${Number(value).toLocaleString()}`
 const lineLabel = (value: string) => LINE_CATEGORIES.find((c) => c.value === value)?.label ?? value
@@ -30,7 +31,7 @@ export const ExpenseDetails: FC<{ expense: ExpenseOrder }> = ({ expense }) => (
       <LabelValueListItem label="Reference no" value={expense.reference_no ?? '—'} />
       <LabelValueListItem
         label="For"
-        value={expense.bookings.length ? expense.bookings.map((b) => `${b.booking_number} · ${b.client.company_name}`).join(', ') : (expense.truck?.reg_no ?? 'Office')}
+        value={expense.bookings.length ? expense.bookings.map((b) => `${b.booking_number} · ${b.client.company_name}`).join(', ') : truckRegNos(expense).join(', ') || 'Office'}
       />
       <LabelValueListItem label="Initiated by" value={expense.initiated_by ?? '—'} />
       {expense.expense_type === 'fuel' && <LabelValueListItem label="Payment" value={expense.payment_mode === 'on_spot' ? 'On the spot' : 'Bill-based'} />}

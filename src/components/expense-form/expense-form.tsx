@@ -22,7 +22,7 @@ const PAYMENT_MODES: { hint: string; label: string; value: PaymentMode }[] = [
 
 const CATEGORIES: { hint: string; label: string; value: ExpenseCategory }[] = [
   { hint: 'Bookings and their trucks; shows on the trip report', label: 'Trip', value: 'trip' },
-  { hint: 'One truck; counts in its annual report', label: 'Truck', value: 'truck' },
+  { hint: 'One or more trucks; each line counts in its truck’s annual report', label: 'Truck', value: 'truck' },
   { hint: 'No truck or trip', label: 'Office', value: 'office' },
 ]
 
@@ -76,7 +76,7 @@ const ExpenseForm: FC<ExpenseFormOptions> = (props) => {
         <section className="grid grid-cols-1 gap-2 md:grid-cols-3" role="radiogroup" aria-label="Category">
           {CATEGORIES.filter((c) => !(form.isFuel && c.value === 'office')).map((c) => (
             <label key={c.value} className={cn('flex cursor-pointer gap-2 rounded-lg p-3 ring-1', form.category === c.value ? 'bg-primary/5 ring-primary' : 'ring-border')}>
-              <input type="radio" name="category" checked={form.category === c.value} onChange={() => form.setCategory(c.value)} className="mt-0.5" />
+              <input type="radio" name="category" checked={form.category === c.value} onChange={() => form.changeCategory(c.value)} className="mt-0.5" />
               <span>
                 <span className="block text-sm font-medium text-foreground">{c.label}</span>
                 <span className="block text-xs text-muted-foreground">{c.hint}</span>
@@ -89,12 +89,11 @@ const ExpenseForm: FC<ExpenseFormOptions> = (props) => {
       {form.category === 'trip' && <BookingsField bookings={form.bookings} loading={form.isLoadingBookings} value={form.bookingIds} onChange={form.changeBookings} />}
       {form.category === 'truck' && (
         <TruckSetField
-          single
-          label="Truck"
+          label="Trucks"
           emptyText="No trucks found."
           options={form.trucks.map((t) => ({ detail: t.driver?.full_name, id: String(t.id), regNo: t.reg_no }))}
-          value={form.truckId ? [form.truckId] : []}
-          onChange={(ids) => form.changeTruck(ids[0] ?? '')}
+          value={form.truckIds}
+          onChange={form.changeTrucks}
         />
       )}
 

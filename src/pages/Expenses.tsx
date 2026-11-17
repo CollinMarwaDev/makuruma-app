@@ -36,6 +36,7 @@ import type { ListConfig } from '~/global/hooks/use-list-params'
 import { useSearchParamsState } from '~/global/utils/r3/hooks'
 import { getErrorMessage } from '~/global/utils/r3/utils'
 import { toast } from '~/global/utils/toast'
+import { truckRegNos } from '~/components/expenses/expense-trucks'
 
 const fetchAll = () => fetchExpenseOrders({})
 
@@ -66,7 +67,7 @@ const LIST: ListConfig<ExpenseOrder> = {
     to: (e, v) => e.created_at.slice(0, 10) <= v,
     view: (e, v) => v === 'all' || e.category === v,
   },
-  search: (e) => [e.order_number, e.reference_no, e.subcategory?.name, ...e.bookings.flatMap((b) => [b.booking_number, b.client.company_name]), e.truck?.reg_no, e.creator.name, e.initiated_by],
+  search: (e) => [e.order_number, e.reference_no, e.subcategory?.name, ...e.bookings.flatMap((b) => [b.booking_number, b.client.company_name]), ...truckRegNos(e), e.creator.name, e.initiated_by],
   sort: {
     created: (e) => e.created_at,
     order: (e) => e.order_number,
@@ -78,7 +79,7 @@ const LIST: ListConfig<ExpenseOrder> = {
 }
 
 /** Bookings, truck or "Office" the order is for. */
-const orderFor = (e: ExpenseOrder) => (e.bookings.length ? e.bookings.map((b) => b.booking_number).join(', ') : (e.truck?.reg_no ?? 'Office'))
+const orderFor = (e: ExpenseOrder) => (e.bookings.length ? e.bookings.map((b) => b.booking_number).join(', ') : truckRegNos(e).join(', ') || 'Office')
 
 /** "$630" or "-$140" (Vibali Congo, kept in USD). */
 const usd = (value: string) => `${Number(value) < 0 ? '-' : ''}$${Math.abs(Number(value)).toLocaleString()}`

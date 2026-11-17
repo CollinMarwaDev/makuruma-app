@@ -16,12 +16,9 @@ const tiny = 'rounded-lg bg-card px-2 py-1 text-xs text-foreground ring-1 ring-b
 
 /** Fuel lines: truck, driver and litres are required; the price per litre may come later (Expense UAT req. 7). */
 export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
-  const isTrip = form.category === 'trip'
-  const truckOptions = form.bookingTrucks.map(({ booking, bt }) => ({
-    detail: [form.driverOf[String(bt.id)], booking.booking_number].filter(Boolean).join(' · '),
-    id: String(bt.id),
-    regNo: bt.truck.reg_no,
-  }))
+  /** Trip and Truck lines pick trucks, each with its own litres and driver. */
+  const isTrip = form.category !== 'office'
+  const truckOptions = form.lineTruckOptions
 
   /** Selecting trucks prefills their driver's name. */
   function pickTrucks(row: LineRow, truckIds: string[]) {
@@ -106,7 +103,7 @@ export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
             {isTrip && (
               <TruckSetField
                 label="Trucks"
-                emptyText="Select a booking first."
+                emptyText={form.category === 'truck' ? 'Select the trucks above first.' : 'Select a booking first.'}
                 options={truckOptions}
                 value={row.truckIds}
                 onChange={(truckIds) => pickTrucks(row, truckIds)}

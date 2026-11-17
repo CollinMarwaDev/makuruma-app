@@ -13,6 +13,8 @@ export interface ExpenseLine {
   amount: string
   amount_description: string | null
   booking_truck: { id: number; truck: { reg_no: string }; trip: { trip_code: string } | null } | null
+  /** Truck of a Truck-category line (an order may cover several trucks). */
+  truck: { id: number; reg_no: string } | null
   currency: Currency
   description: string
   driver_name: string | null

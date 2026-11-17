@@ -6,6 +6,8 @@ import { API_BASE_URL } from './apiClient'
 export interface ExpenseLineInput {
   amount_description?: string
   booking_truck_id?: string
+  /** Truck of a Truck-category line. */
+  truck_id?: string
   currency: Currency
   description: string
   driver_name?: string

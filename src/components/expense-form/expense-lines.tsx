@@ -13,15 +13,12 @@ interface ExpenseLinesProps {
 
 const tzs = (value: number) => `TZS ${value.toLocaleString()}`
 
-/** Lines of a non-fuel order (fuel uses FuelLines). Trip lines pick trucks from the selected bookings. */
+/** Lines of a non-fuel order (fuel uses FuelLines). Trip lines pick from the bookings' trucks, Truck lines from the order's trucks. */
 export const ExpenseLines: FC<ExpenseLinesProps> = ({ fieldClass, form }) => {
   const { category, type } = form
   const meta = LINE_CATEGORIES.find((c) => c.value === type)
-  const truckOptions = form.bookingTrucks.map(({ booking, bt }) => ({
-    detail: [bt.driver?.full_name ?? bt.truck.driver?.full_name, booking.booking_number].filter(Boolean).join(' · '),
-    id: String(bt.id),
-    regNo: bt.truck.reg_no,
-  }))
+  const truckOptions = form.lineTruckOptions
+  const perTruck = category === 'trip' || category === 'truck'
   const small = fieldClass.replace('px-3 py-2', 'px-2 py-1.5')
 
   return (
@@ -63,7 +60,7 @@ export const ExpenseLines: FC<ExpenseLinesProps> = ({ fieldClass, form }) => {
               {row.currency !== 'TZS' && (
                 <NumberField id={id('rate')} label="Exchange rate" value={row.exchangeRate} className={small} onChange={(v) => form.updateRow(row.key, { exchangeRate: v })} />
               )}
-              {category === 'trip' && (
+              {perTruck && (
                 <NumberField id={id('amount')} label="Amount per truck" value={row.amount} className={small} onChange={(v) => form.updateRow(row.key, { amount: v })} />
               )}
               {category === 'office' && (
@@ -72,15 +69,12 @@ export const ExpenseLines: FC<ExpenseLinesProps> = ({ fieldClass, form }) => {
                   <NumberField id={id('unit')} label="Rate" value={row.unitRate} className={small} onChange={(v) => form.updateRow(row.key, { unitRate: v })} />
                 </>
               )}
-              {category === 'truck' && (
-                <NumberField id={id('amount')} label="Amount" value={row.amount} className={small} onChange={(v) => form.updateRow(row.key, { amount: v })} />
-              )}
             </div>
 
-            {category === 'trip' && (
+            {perTruck && (
               <TruckSetField
                 label="Applies to"
-                emptyText="Select a booking first."
+                emptyText={category === 'truck' ? 'Select the trucks above first.' : 'Select a booking first.'}
                 options={truckOptions}
                 value={row.truckIds}
                 onChange={(truckIds) => form.updateRow(row.key, { truckIds })}

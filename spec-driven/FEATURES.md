@@ -52,3 +52,7 @@ Client request (17 Nov 2026): no Loading / At border / Offloading / Completed. U
 Artifacts: `delegate/tracking-statuses-and-excel/` requirements → plan → tasks (all done 2026-11-17).
 
 Live data note: the product owner had already renamed Loading/Offloading/Completed labels, added "Loaded, waiting for documents" and changed colours in production (17 Nov). Migration 2026_11_18_090000 matches statuses by key or label, keeps user-chosen labels/colours, adopts the hand-added status and moves its legs. Wrong hidden-ID rows now say why (other sheet, truck removed, booking deleted, other truck).
+
+## expense-truck-orders-multi-truck — status: done
+
+Client request (17 Nov 2026): a Truck expense order can cover several trucks. The order picks its trucks, and each line ticks which of them it is for ("Same for all"), like Trip lines; an amount is per truck and each truck's annual report counts only its own lines. "Initiated by" is always the signed-in user (set by the server, read-only in the form).

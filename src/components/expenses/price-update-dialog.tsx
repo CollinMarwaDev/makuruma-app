@@ -36,7 +36,7 @@ const PriceForm: FC<{ expense: ExpenseOrder; onSaved: () => void }> = ({ expense
     expense.lines.forEach((l) => byKey.set(l.group_key ?? `line-${l.id}`, [...(byKey.get(l.group_key ?? `line-${l.id}`) ?? []), l]))
     return [...byKey.entries()].map(([key, lines]) => ({
       key,
-      label: `${lines[0].description} · ${lines.map((l) => l.booking_truck?.truck.reg_no ?? expense.truck?.reg_no ?? '').filter(Boolean).join(', ')}`,
+      label: `${lines[0].description} · ${lines.map((l) => l.booking_truck?.truck.reg_no ?? l.truck?.reg_no ?? expense.truck?.reg_no ?? '').filter(Boolean).join(', ')}`,
       lines,
       litres: lines.reduce((sum, l) => sum + Number(l.quantity ?? 0), 0),
       saved: lines[0].unit_rate ?? '',

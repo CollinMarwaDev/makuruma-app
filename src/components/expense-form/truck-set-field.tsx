@@ -12,8 +12,6 @@ export interface TruckOption {
 interface TruckSetFieldProps {
   emptyText: string
   label: string
-  /** One truck only (Truck-category orders); hides "Same for all". */
-  single?: boolean
   onChange: (ids: string[]) => void
   options: TruckOption[]
   /** Extra input under a selected truck, e.g. litres. */
@@ -22,13 +20,12 @@ interface TruckSetFieldProps {
 }
 
 /** Searchable truck picker with "Same for all" (Expense UAT req. 5, 14). */
-export const TruckSetField: FC<TruckSetFieldProps> = ({ emptyText, label, onChange, options, renderSelected, single, value }) => {
+export const TruckSetField: FC<TruckSetFieldProps> = ({ emptyText, label, onChange, options, renderSelected, value }) => {
   const [query, setQuery] = useState('')
   const term = query.trim().toLowerCase()
   const visible = options.filter((o) => [o.regNo, o.detail].some((v) => v?.toLowerCase().includes(term)))
 
   const toggle = (id: string) => {
-    if (single) return onChange(value.includes(id) ? [] : [id])
     onChange(value.includes(id) ? value.filter((v) => v !== id) : [...value, id])
   }
 
@@ -37,9 +34,9 @@ export const TruckSetField: FC<TruckSetFieldProps> = ({ emptyText, label, onChan
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs text-muted-foreground">
           {label}
-          {!single && ` (${value.length} of ${options.length})`}
+          {` (${value.length} of ${options.length})`}
         </span>
-        {!single && options.length > 0 && (
+        {options.length > 0 && (
           <div className="flex gap-3 text-xs font-medium">
             <button type="button" onClick={() => onChange(options.map((o) => o.id))} className="text-primary hover:underline">
               Same for all
@@ -62,7 +59,7 @@ export const TruckSetField: FC<TruckSetFieldProps> = ({ emptyText, label, onChan
             return (
               <li key={option.id} className={cn('px-3 py-1.5', checked && 'bg-primary/5')}>
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
-                  <input type={single ? 'radio' : 'checkbox'} checked={checked} onChange={() => toggle(option.id)} className="cursor-pointer" />
+                  <input type="checkbox" checked={checked} onChange={() => toggle(option.id)} className="cursor-pointer" />
                   <span className="font-medium text-foreground">{option.regNo}</span>
                   {option.detail && <span className="truncate text-xs text-muted-foreground">{option.detail}</span>}
                 </label>

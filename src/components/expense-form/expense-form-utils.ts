@@ -54,15 +54,14 @@ export const newRow = (): LineRow => ({
 
 export const num = (value: string | undefined) => parseFloat(value ?? '') || 0
 
-/** Line total in TZS, following the category rules: Trip per truck, Office quantity × rate, Truck one amount. */
+/** Line total in TZS, following the category rules: Trip and Truck per truck, Office quantity × rate. */
 export function rowTotal(row: LineRow, category: ExpenseCategory, type: LineCategory): number {
   const rate = row.currency === 'TZS' ? 1 : num(row.exchangeRate)
-  if (category === 'trip') {
+  if (category === 'trip' || category === 'truck') {
     if (type === 'fuel') return row.truckIds.reduce((sum, id) => sum + num(row.litres[id]), 0) * num(row.unitRate) * rate
     return num(row.amount) * row.truckIds.length * rate
   }
-  if (category === 'office' || type === 'fuel') return num(row.quantity) * num(row.unitRate) * rate
-  return num(row.amount) * rate
+  return num(row.quantity) * num(row.unitRate) * rate
 }
 
 /** Rebuild form rows from saved lines (grouped by group_key). */
@@ -77,10 +76,12 @@ export function rowsFromLines(lines: ExpenseLine[]): LineRow[] {
     const first = group[0]
     const litres: Record<string, string> = {}
     const drivers: Record<string, string> = {}
+    const lineTruck = (l: ExpenseLine) => l.booking_truck?.id ?? l.truck?.id
     group.forEach((l) => {
-      if (!l.booking_truck) return
-      litres[String(l.booking_truck.id)] = l.quantity ?? ''
-      drivers[String(l.booking_truck.id)] = l.driver_name ?? ''
+      const truckId = lineTruck(l)
+      if (!truckId) return
+      litres[String(truckId)] = l.quantity ?? ''
+      drivers[String(truckId)] = l.driver_name ?? ''
     })
     return {
       amount: first.original_amount,
@@ -98,14 +99,14 @@ export function rowsFromLines(lines: ExpenseLine[]): LineRow[] {
       multiplier: first.multiplier ?? '1',
       payee: first.payee ?? '',
       quantity: first.quantity ?? '',
-      truckIds: group.flatMap((l) => (l.booking_truck ? [String(l.booking_truck.id)] : [])),
+      truckIds: group.flatMap((l) => (lineTruck(l) ? [String(lineTruck(l))] : [])),
       unitRate: first.unit_rate ?? '',
       vendorId: first.vendor ? String(first.vendor.id) : '',
     }
   })
 }
 
-/** API lines for the rows; a Trip row becomes one line per selected truck. */
+/** API lines for the rows; a Trip or Truck row becomes one line per selected truck. */
 export function buildLines(rows: LineRow[], category: ExpenseCategory, type: LineCategory): ExpenseLineInput[] {
   return rows.flatMap((row): ExpenseLineInput[] => {
     const base: ExpenseLineInput = {
@@ -116,12 +117,13 @@ export function buildLines(rows: LineRow[], category: ExpenseCategory, type: Lin
       line_category: type,
       vendor_id: row.vendorId || undefined,
     }
-    if (category === 'trip') {
-      return row.truckIds.map((id) =>
-        type === 'fuel'
-          ? { ...base, booking_truck_id: id, driver_name: row.drivers[id]?.trim(), quantity: row.litres[id] || '0', unit_rate: row.unitRate || undefined }
-          : { ...base, booking_truck_id: id, original_amount: row.amount || '0' }
-      )
+    if (category === 'trip' || category === 'truck') {
+      return row.truckIds.map((id) => {
+        const truck = category === 'trip' ? { booking_truck_id: id } : { truck_id: id }
+        return type === 'fuel'
+          ? { ...base, ...truck, driver_name: row.drivers[id]?.trim(), quantity: row.litres[id] || '0', unit_rate: row.unitRate || undefined }
+          : { ...base, ...truck, original_amount: row.amount || '0' }
+      })
     }
     if (type === 'fuel') return [{ ...base, driver_name: row.driver.trim(), quantity: row.quantity || '0', unit_rate: row.unitRate || undefined }]
     if (category === 'office') return [{ ...base, quantity: row.quantity || '0', unit_rate: row.unitRate || '0' }]
@@ -133,10 +135,10 @@ export function buildLines(rows: LineRow[], category: ExpenseCategory, type: Lin
 export function rowsProblem(rows: LineRow[], category: ExpenseCategory, type: LineCategory): string | null {
   if (rows.length === 0) return 'Add at least one expense line.'
   if (rows.some((r) => !r.description.trim())) return 'Every line needs a description.'
-  if (category === 'trip' && rows.some((r) => r.truckIds.length === 0)) return 'Select at least one truck on every line.'
+  if (category !== 'office' && rows.some((r) => r.truckIds.length === 0)) return 'Select at least one truck on every line.'
   if (type !== 'fuel') return null
   if (category === 'office') return 'Fuel is for a truck: choose Trip or Truck, not Office.'
-  const perTruck = (r: LineRow) => (category === 'trip' ? r.truckIds.map((id) => [r.litres[id], r.drivers[id]]) : [[r.quantity, r.driver]])
+  const perTruck = (r: LineRow) => r.truckIds.map((id) => [r.litres[id], r.drivers[id]])
   if (rows.some((r) => perTruck(r).some(([litres]) => num(litres) <= 0))) return 'Enter the litres for every truck.'
   if (rows.some((r) => perTruck(r).some(([, driver]) => !driver?.trim()))) return "Enter the driver's name for every truck."
   return null
