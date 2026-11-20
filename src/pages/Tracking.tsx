@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowUpTrayIcon, Cog6ToothIcon, TableCellsIcon } from '@heroicons/react/24/outline'
 import type { TrackingLeg } from '~/types/tracking'
-import { downloadTrackingExcel, downloadTrackingReport, fetchTrackingLegs } from '~/services/trackingService'
+import { downloadTrackingExcel, downloadTrackingReport, fetchBookingNeeds, fetchTrackingLegs, type BookingNeeds } from '~/services/trackingService'
 import { useAuth } from '~/hooks/useAuth'
 import { TrackingLegForm } from '~/components/tracking/tracking-leg-form'
 import { TrackingImportModal } from '~/components/tracking/tracking-import-modal'
@@ -18,6 +18,7 @@ import { toast } from '~/global/utils/toast'
 function Tracking() {
   const { user } = useAuth()
   const [legs, setLegs] = useState<TrackingLeg[]>([])
+  const [needs, setNeeds] = useState<BookingNeeds>({ unbooked: [], urgent: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
   const [reloadTrigger, setReloadTrigger] = useState(0)
@@ -30,10 +31,11 @@ function Tracking() {
 
   useEffect(() => {
     let cancelled = false
-    fetchTrackingLegs('all')
-      .then((data) => {
+    Promise.all([fetchTrackingLegs('all'), fetchBookingNeeds()])
+      .then(([data, bookingNeeds]) => {
         if (cancelled) return
         setLegs(data)
+        setNeeds(bookingNeeds)
         setError(null)
       })
       .catch((err: unknown) => !cancelled && setError(err))
@@ -98,7 +100,14 @@ function Tracking() {
         <ErrorFallback error={error} ctaLabel="Try again" ctaLink="/tracking" />
       ) : (
         <GeneralErrorBoundary>
-          <TrackingTableSection legs={legs} isLoading={loading} onOpen={openLeg} onDownload={handleDownload} />
+          <TrackingTableSection
+            legs={legs}
+            needs={needs}
+            isLoading={loading}
+            onOpen={openLeg}
+            onOpenLeg={(legId) => setParams({ leg: String(legId) })}
+            onDownload={handleDownload}
+          />
         </GeneralErrorBoundary>
       )}
 

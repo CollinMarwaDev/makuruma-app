@@ -1,10 +1,10 @@
 import { useState, type FC } from 'react'
-import type { Booking } from '~/types/booking'
+import type { ExpensePickBooking } from '~/types/expense'
 import { SearchBox } from '~/global/components/search-box'
 import { cn } from '~/global/utils/cn'
 
 interface BookingsFieldProps {
-  bookings: Booking[]
+  bookings: ExpensePickBooking[]
   disabled?: boolean
   loading?: boolean
   onChange: (ids: number[]) => void

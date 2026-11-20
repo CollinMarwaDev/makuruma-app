@@ -144,6 +144,54 @@ export async function importTrackingExcel(file: File, apply: boolean): Promise<T
   return importResultSchema.parse(body)
 }
 
+// --- Booking needs (UAT 20 Nov) ----------------------------------------------
+
+const lastLegSchema = z.object({
+  booking_number: z.string().nullable(),
+  direction: z.enum(['go', 'return']).nullable(),
+  id: z.number(),
+  offloading_date: z.string().nullable(),
+  offloading_point: z.string().nullable(),
+})
+
+const bookingNeedsSchema = z.object({
+  unbooked: z.array(
+    z.object({
+      days_idle: z.number().nullable(),
+      driver: z.string().nullable(),
+      driver_phone: z.string().nullable(),
+      last_leg: lastLegSchema.nullable(),
+      location: z.string().nullable(),
+      needs: z.enum(['go', 'return']),
+      trailer: z.string().nullable(),
+      truck: z.object({ id: z.number(), reg_no: z.string() }),
+    })
+  ),
+  urgent: z.array(
+    z.object({
+      booking_number: z.string().nullable(),
+      client: z.string().nullable(),
+      direction: z.enum(['go', 'return']),
+      driver: z.string().nullable(),
+      driver_phone: z.string().nullable(),
+      leg_id: z.number(),
+      location: z.string().nullable(),
+      needs: z.enum(['go', 'return']),
+      reached: z.string(),
+      reached_at: z.string().nullable(),
+      status: z.string(),
+      truck: z.object({ id: z.number(), reg_no: z.string() }),
+    })
+  ),
+})
+
+export type BookingNeeds = z.infer<typeof bookingNeedsSchema>
+
+/** Trucks with no booking, and trucks near the border that need their next booking (UAT 20 Nov). */
+export async function fetchBookingNeeds(): Promise<BookingNeeds> {
+  return bookingNeedsSchema.parse(await apiClient('/tracking/booking-needs'))
+}
+
 // --- Statuses (contract 2.2 D-4) ----------------------------------------------
 
 export async function fetchTrackingStatuses(): Promise<TrackingStatusOption[]> {

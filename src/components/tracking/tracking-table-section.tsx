@@ -9,14 +9,18 @@ import { TableSection, type Filter } from '~/global/components/table-section'
 import { createTable, type ColumnHeader } from '~/global/components/table'
 import { TabLinks } from '~/global/components/tab-link'
 import { StatusBadge } from '~/components/tracking/status-badge'
-import { useTrackingList, type TrackingView } from '~/components/tracking/use-tracking-list'
+import { BookingNeedsSection } from '~/components/tracking/booking-needs-section'
+import { isNeedsView, useTrackingList, type TrackingView } from '~/components/tracking/use-tracking-list'
+import type { BookingNeeds } from '~/services/trackingService'
 import { useTrackingStatuses } from '~/components/tracking/use-tracking-statuses'
 
 interface TrackingTableSectionProps {
   isLoading: boolean
   legs: TrackingLeg[]
+  needs: BookingNeeds
   onDownload: (leg: TrackingLeg) => void
   onOpen: (leg: TrackingLeg) => void
+  onOpenLeg: (legId: number) => void
 }
 
 const LegTable = createTable<TrackingLeg>()
@@ -33,17 +37,20 @@ const HEADERS: ColumnHeader[] = [
 
 /** View tabs live in the URL (`?view=`), so they use the global TabLinks. Switching a tab clears search and filters. */
 const VIEWS: { label: string; matchPattern: RegExp; value: TrackingView }[] = [
-  { label: 'All active', matchPattern: /^\/tracking(?![^#]*[?&]view=(go|return|offloaded|completed)\b)/, value: 'active' },
+  { label: 'All active', matchPattern: /^\/tracking(?![^#]*[?&]view=(go|return|offloaded|completed|unbooked|urgent)\b)/, value: 'active' },
   { label: 'Go', matchPattern: /^\/tracking\?(.*&)?view=go\b/, value: 'go' },
   { label: 'Return', matchPattern: /^\/tracking\?(.*&)?view=return\b/, value: 'return' },
   { label: 'Offloaded', matchPattern: /^\/tracking\?(.*&)?view=(offloaded|completed)\b/, value: 'offloaded' },
+  { label: 'Unbooked', matchPattern: /^\/tracking\?(.*&)?view=unbooked\b/, value: 'unbooked' },
+  { label: 'Needs booking', matchPattern: /^\/tracking\?(.*&)?view=urgent\b/, value: 'urgent' },
 ]
 
 const day = (value: string | null) => (value ? value.slice(0, 10) : '—')
 
 /** Tracking legs on the global TableSection: view tabs, search, filters, table, empty state, pagination. */
-export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading, legs, onDownload, onOpen }) => {
-  const { clients, counts, filtered, pageRows, setFilter, totalPages, view } = useTrackingList(legs)
+export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading, legs, needs, onDownload, onOpen, onOpenLeg }) => {
+  const { clients, counts, filtered, pageRows, search, setFilter, totalPages, view } = useTrackingList(legs)
+  const tabCount = (tab: TrackingView) => (tab === 'unbooked' ? needs.unbooked.length : tab === 'urgent' ? needs.urgent.length : counts[tab])
   const { activeStatuses } = useTrackingStatuses()
 
   const filters: Filter[] = [
@@ -67,17 +74,19 @@ export const TrackingTableSection: FC<TrackingTableSectionProps> = ({ isLoading,
         containerClassName="overflow-x-auto px-4 pt-3"
         tabs={VIEWS.map((tab) => ({
           matchPattern: tab.matchPattern,
-          name: `${tab.label} (${counts[tab.value]})`,
+          name: `${tab.label} (${tabCount(tab.value)})`,
           url: tab.value === 'active' ? '/tracking' : `/tracking?view=${tab.value}`,
         }))}
       />
 
       <TableSection.Header className="flex-wrap gap-3">
-        <TableSection.SearchAndFilter filters={filters} placeholder="Search truck, driver, trip, booking" />
+        <TableSection.SearchAndFilter filters={isNeedsView(view) ? [] : filters} placeholder="Search truck, driver, trip, booking" />
       </TableSection.Header>
       <TableSection.ActiveFilters exclude={['sortBy', 'sortOrder', 'view']} className="-mt-2 pb-4" />
 
-      {isLoading ? (
+      {isNeedsView(view) ? (
+        <BookingNeedsSection isLoading={isLoading} needs={needs} onOpenLeg={onOpenLeg} search={search} view={view} />
+      ) : isLoading ? (
         <LegTable.Loading columns={6} rows={6} className="pt-4" />
       ) : filtered.length === 0 ? (
         <EmptyState

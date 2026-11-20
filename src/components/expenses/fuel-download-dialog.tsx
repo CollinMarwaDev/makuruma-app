@@ -7,7 +7,7 @@ import { getErrorMessage } from '~/global/utils/r3/utils'
 import { toast } from '~/global/utils/toast'
 
 /** Asks whether the fuel PDF shows prices, so nobody has to edit the PDF before sending it (req. 11). */
-export const FuelDownloadDialog: FC<{ expense: ExpenseOrder | null; onClose: () => void }> = ({ expense, onClose }) => {
+export const FuelDownloadDialog: FC<{ expense: Pick<ExpenseOrder, 'form_number' | 'id' | 'pending_price'> | null; onClose: () => void }> = ({ expense, onClose }) => {
   const [busy, setBusy] = useState<'with' | 'without' | null>(null)
 
   async function download(showPrice: boolean) {
@@ -24,7 +24,7 @@ export const FuelDownloadDialog: FC<{ expense: ExpenseOrder | null; onClose: () 
   }
 
   return (
-    <FormModal open={!!expense} onClose={onClose} title={expense ? `Download ${expense.order_number}` : ''}>
+    <FormModal open={!!expense} onClose={onClose} title={expense ? `Download ${expense.form_number}` : ''}>
       <p className="mb-4 text-sm text-muted-foreground">
         Show the price per litre and amounts on the PDF?
         {expense?.pending_price && ' Some prices are still pending and will show as "Pending".'}

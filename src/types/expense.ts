@@ -19,6 +19,8 @@ export interface ExpenseLine {
   description: string
   driver_name: string | null
   exchange_rate: string
+  /** Fuel: the day the truck was filled, when the vendor gives it (UAT 20 Nov). */
+  filled_at: string | null
   group_key: string | null
   is_additional: boolean
   is_flat: boolean
@@ -50,6 +52,8 @@ export interface ExpenseOrder {
   creator: ExpenseUser
   expense_type: LineCategory
   form: ExpenseFormKind | null
+  /** The typed reference number (UAT 20 Nov); the system number when there is none. */
+  form_number: string
   initiated_by: string | null
   /** Saved before types were separated and mixes line types: view and download only. */
   is_legacy_mixed: boolean
@@ -83,6 +87,37 @@ export interface ExpenseOrder {
   usd_total: string
   vendor_id: number | null
   zmk_rate: string | null
+}
+
+/** A row of the Expenses list (UAT 20 Nov: the list no longer loads lines; open an order for the details). */
+export interface ExpenseListItem
+  extends Pick<
+    ExpenseOrder,
+    | 'category' | 'created_at' | 'expense_type' | 'form' | 'form_number' | 'id' | 'initiated_by' | 'is_legacy_mixed' | 'order_number'
+    | 'paid_at' | 'payment_date' | 'pending_price' | 'price_overdue' | 'reference_no' | 'status' | 'subcategory' | 'total_amount' | 'usd_total'
+  > {
+  approver: ExpenseUser | null
+  bookings: { booking_number: string; client: { company_name: string | null }; direction: 'go' | 'return'; id: number }[]
+  creator: ExpenseUser | null
+  line_categories: LineCategory[]
+  /** Trucks on the order's lines. */
+  truck_reg_nos: string[]
+}
+
+/** Booking as the expense form picks it: number, client and its trucks with drivers. */
+export interface ExpensePickBooking {
+  booking_number: string
+  booking_trucks: { driver: { full_name: string } | null; id: number; truck: { driver: { full_name: string } | null; id: number; reg_no: string } }[]
+  client: { company_name: string }
+  direction: 'go' | 'return'
+  id: number
+}
+
+/** Truck as the expense form picks it. */
+export interface ExpensePickTruck {
+  driver: { full_name: string } | null
+  id: number
+  reg_no: string
 }
 
 export interface PriceChange {

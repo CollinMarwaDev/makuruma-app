@@ -17,7 +17,6 @@ const money = (currency: Currency, value: number) => `${SYMBOL[currency]}${value
  * per line with "Same for all", or one flat amount for the order (Expense UAT req. 13–15, 19–20).
  */
 export const VibaliLines: FC<{ form: ExpenseFormState }> = ({ form }) => {
-  const isGeneral = form.activeForm === 'general'
   const isGo = form.activeForm === 'go'
   const isReturn = form.activeForm === 'return'
   const truckOptions = form.bookingTrucks.map(({ booking, bt }) => ({
@@ -79,16 +78,14 @@ export const VibaliLines: FC<{ form: ExpenseFormState }> = ({ form }) => {
                 <label htmlFor={id('amount-text')} className={label}>Amount description (printed)</label>
                 <input id={id('amount-text')} value={row.amountDescription} placeholder={autoAmountText(row)} onChange={(e) => form.updateRow(row.key, { amountDescription: e.target.value })} className={small} />
               </div>
-              {isGeneral && (
-                <div>
-                  <label htmlFor={id('payee')} className={label}>Money goes to (not printed)</label>
-                  <select id={id('payee')} value={row.payee} onChange={(e) => form.updateRow(row.key, { payee: e.target.value as '' | 'driver' | 'agent' })} className={small}>
-                    <option value="">—</option>
-                    <option value="driver">Driver</option>
-                    <option value="agent">Agent</option>
-                  </select>
-                </div>
-              )}
+              <div>
+                <label htmlFor={id('payee')} className={label}>Money goes to</label>
+                <select id={id('payee')} value={row.payee} onChange={(e) => form.updateRow(row.key, { payee: e.target.value as '' | 'driver' | 'agent' })} className={small}>
+                  <option value="">— Choose —</option>
+                  <option value="driver">Handed to the driver</option>
+                  <option value="agent">Stays with the agent</option>
+                </select>
+              </div>
             </div>
 
             <label className="flex w-fit cursor-pointer items-center gap-2 text-xs text-muted-foreground">

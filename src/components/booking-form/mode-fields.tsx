@@ -51,7 +51,8 @@ export const ModeFields: FC<ModeFieldsProps> = ({ modes, onModeChange, onSharedC
             </div>
           </div>
           <input
-            type="text"
+            type={field === 'eta' && isSame ? 'date' : 'text'}
+            aria-label={`${SHARED_FIELD_LABELS[field]} for all trucks`}
             inputMode={isNumber ? 'decimal' : undefined}
             value={isSame ? shared[field] : ''}
             disabled={!isSame}

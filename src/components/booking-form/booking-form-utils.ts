@@ -2,12 +2,13 @@ import type { Booking, BookingTruck, EligibleTruck } from '~/types/booking'
 import type { TruckDetails } from '~/services/bookingService'
 
 /** Fields the user can set once for all trucks ("Same") or per truck ("Different"). */
-export const SHARED_FIELDS = ['loading_point', 'offloading_point', 'cargo', 'rate'] as const
+export const SHARED_FIELDS = ['loading_point', 'offloading_point', 'cargo', 'rate', 'eta'] as const
 export type SharedField = (typeof SHARED_FIELDS)[number]
 export type FieldMode = 'same' | 'different'
 
 export const SHARED_FIELD_LABELS: Record<SharedField, string> = {
   cargo: 'Cargo',
+  eta: 'ETA',
   loading_point: 'Loading location',
   offloading_point: 'Offloading point',
   rate: 'Rate ($/mt)',
@@ -26,7 +27,6 @@ export const SORT_OPTIONS: { label: string; value: SortOption }[] = [
 /** One truck line on the form. `bookingTruckId` is set once the truck is saved on the booking. */
 export interface TruckRow extends Record<SharedField, string> {
   bookingTruckId?: number
-  eta: string
   tons: string
   truck: EligibleTruck
 }
@@ -34,8 +34,8 @@ export interface TruckRow extends Record<SharedField, string> {
 export type ModeState = Record<SharedField, FieldMode>
 export type SharedValues = Record<SharedField, string>
 
-export const EMPTY_SHARED: SharedValues = { cargo: '', loading_point: '', offloading_point: '', rate: '' }
-export const ALL_SAME: ModeState = { cargo: 'same', loading_point: 'same', offloading_point: 'same', rate: 'same' }
+export const EMPTY_SHARED: SharedValues = { cargo: '', eta: '', loading_point: '', offloading_point: '', rate: '' }
+export const ALL_SAME: ModeState = { cargo: 'same', eta: 'same', loading_point: 'same', offloading_point: 'same', rate: 'same' }
 
 const text = (value: string | number | null | undefined) => (value === null || value === undefined ? '' : String(value))
 
@@ -85,7 +85,7 @@ export function resolveRow(row: TruckRow, modes: ModeState, shared: SharedValues
   const pick = (field: SharedField) => (modes[field] === 'same' ? shared[field] : row[field]) || undefined
   return {
     cargo: pick('cargo'),
-    eta: row.eta || undefined,
+    eta: pick('eta'),
     loading_point: pick('loading_point'),
     offloading_point: pick('offloading_point'),
     rate: pick('rate'),

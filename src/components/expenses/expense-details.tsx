@@ -1,4 +1,4 @@
-import type { FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 import type { ExpenseOrder } from '~/types/expense'
 import { LINE_CATEGORIES, expenseTypeLabel } from '~/constants/expenseLineCategories'
 import { Card } from '~/global/components/card'
@@ -6,6 +6,9 @@ import { LabelValueListItem } from '~/global/components/label-value-list-item'
 import { ExpenseStatusBadge } from '~/components/expenses/expense-status-badge'
 import { PricePendingBadge } from '~/components/expenses/price-pending-badge'
 import { truckRegNos } from '~/components/expenses/expense-trucks'
+import { fetchExpenseOrder } from '~/services/expenseService'
+import { ParagraphLoading } from '~/global/components/loaders/paragraph-loader'
+import { getErrorMessage } from '~/global/utils/r3/utils'
 
 const tzs = (value: string | number) => `TZS ${Number(value).toLocaleString()}`
 const lineLabel = (value: string) => LINE_CATEGORIES.find((c) => c.value === value)?.label ?? value
@@ -28,7 +31,7 @@ export const ExpenseDetails: FC<{ expense: ExpenseOrder }> = ({ expense }) => (
       />
       <LabelValueListItem label="Expense type" value={`${expenseTypeLabel(expense.expense_type)}${expense.subcategory ? ` · ${expense.subcategory.name}` : ''}`} />
       <LabelValueListItem label="Category" value={expense.category.charAt(0).toUpperCase() + expense.category.slice(1)} />
-      <LabelValueListItem label="Reference no" value={expense.reference_no ?? '—'} />
+      <LabelValueListItem label="Form number" value={`${expense.form_number} (system ${expense.order_number})`} />
       <LabelValueListItem
         label="For"
         value={expense.bookings.length ? expense.bookings.map((b) => `${b.booking_number} · ${b.client.company_name}`).join(', ') : truckRegNos(expense).join(', ') || 'Office'}
@@ -46,7 +49,7 @@ export const ExpenseDetails: FC<{ expense: ExpenseOrder }> = ({ expense }) => (
       <h3 className="text-sm font-semibold text-foreground">Approval trail</h3>
       <LabelValueListItem label="Created" value={`${expense.created_at.slice(0, 10)} · ${expense.creator.name}`} />
       <LabelValueListItem label="Approved" value={expense.approver ? `${expense.approved_at?.slice(0, 10) ?? ''} · ${expense.approver.name}` : '—'} />
-      <LabelValueListItem label="Paid" value={expense.payer ? `${expense.paid_at?.slice(0, 10) ?? ''} · ${expense.payer.name}` : '—'} />
+      <LabelValueListItem label="Paid on" value={expense.payer ? `${expense.paid_at?.slice(0, 10) ?? ''} · ${expense.payer.name}` : '—'} />
     </Card>
 
     <Card className="space-y-2 p-4">
@@ -97,3 +100,23 @@ export const ExpenseDetails: FC<{ expense: ExpenseOrder }> = ({ expense }) => (
     )}
   </>
 )
+
+/** Loads the full order when its details open (the list only carries list rows, UAT 20 Nov). `version` reloads it after an action. */
+export const ExpenseDetailsPanel: FC<{ id: number; version: number }> = ({ id, version }) => {
+  const [state, setState] = useState<{ error?: string; expense?: ExpenseOrder; key: string } | null>(null)
+  const key = `${id}-${version}`
+
+  useEffect(() => {
+    let cancelled = false
+    fetchExpenseOrder(id)
+      .then((expense) => !cancelled && setState({ expense, key }))
+      .catch((err: unknown) => !cancelled && setState({ error: getErrorMessage(err), key }))
+    return () => {
+      cancelled = true
+    }
+  }, [id, key])
+
+  if (!state || state.key !== key) return <div role="status" aria-label="Loading expense"><ParagraphLoading lines={6} /></div>
+  if (state.error || !state.expense) return <p className="text-sm text-status-red-pc">{state.error ?? 'The expense could not be loaded.'}</p>
+  return <ExpenseDetails expense={state.expense} />
+}

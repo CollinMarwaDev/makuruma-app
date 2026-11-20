@@ -14,7 +14,10 @@ interface FuelLinesProps {
 const small = 'w-full rounded-lg bg-secondary px-2 py-1.5 text-sm text-foreground ring-1 ring-border'
 const tiny = 'rounded-lg bg-card px-2 py-1 text-xs text-foreground ring-1 ring-border'
 
-/** Fuel lines: truck, driver and litres are required; the price per litre may come later (Expense UAT req. 7). */
+/**
+ * Fuel lines: truck and litres are required; the driver comes from the truck (can be changed, UAT 20 Nov);
+ * the price per litre and the filling date may come later (Expense UAT req. 7).
+ */
 export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
   /** Trip and Truck lines pick trucks, each with its own litres and driver. */
   const isTrip = form.category !== 'office'
@@ -80,6 +83,12 @@ export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
                 <input id={id('price')} inputMode="decimal" value={row.unitRate} placeholder="Leave empty if not known" onChange={(e) => form.updateRow(row.key, { unitRate: e.target.value })} className={small} />
                 {priceChanged && <p className="mt-1 text-xs text-status-yellow-pc">Changed — give a reason below.</p>}
               </div>
+              <div className="w-44">
+                <label htmlFor={id('filled')} className="mb-1 block text-xs text-muted-foreground">
+                  Filling date <span className="text-muted-foreground">(optional)</span>
+                </label>
+                <input id={id('filled')} type="date" max={new Date().toISOString().slice(0, 10)} value={row.filledAt} onChange={(e) => form.updateRow(row.key, { filledAt: e.target.value })} className={small} />
+              </div>
               {row.currency !== 'TZS' && (
                 <div className="w-40">
                   <label htmlFor={id('rate')} className="mb-1 block text-xs text-muted-foreground">Exchange rate</label>
@@ -94,7 +103,7 @@ export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
                   </div>
                   <div className="min-w-48 flex-1">
                     <label htmlFor={id('driver')} className="mb-1 block text-xs text-muted-foreground">Driver's name</label>
-                    <input id={id('driver')} value={row.driver} onChange={(e) => form.updateRow(row.key, { driver: e.target.value })} className={small} />
+                    <input id={id('driver')} placeholder="From the truck if left empty" value={row.driver} onChange={(e) => form.updateRow(row.key, { driver: e.target.value })} className={small} />
                   </div>
                 </>
               )}
@@ -119,7 +128,7 @@ export const FuelLines: FC<FuelLinesProps> = ({ form }) => {
                     />
                     <input
                       aria-label="Driver's name"
-                      placeholder="Driver's name"
+                      placeholder="Driver (from the truck)"
                       value={row.drivers[truckId] ?? ''}
                       onChange={(e) => form.updateRow(row.key, { drivers: { ...row.drivers, [truckId]: e.target.value } })}
                       className={`w-52 ${tiny}`}

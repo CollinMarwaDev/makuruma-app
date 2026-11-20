@@ -75,7 +75,7 @@ const BookingForm: FC<ManageBookingFormOptions> = (props) => {
       <section className="space-y-3">
         <div>
           <h3 className={sectionTitle}>Nature of the booking</h3>
-          <p className="text-xs text-muted-foreground">Choose per field whether all trucks share one value or each truck has its own. ETA is always per truck.</p>
+          <p className="text-xs text-muted-foreground">Choose per field whether all trucks share one value or each truck has its own.</p>
         </div>
         <ModeFields modes={form.modes} shared={form.shared} onModeChange={form.changeMode} onSharedChange={form.changeShared} />
       </section>
@@ -84,7 +84,7 @@ const BookingForm: FC<ManageBookingFormOptions> = (props) => {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 className={sectionTitle}>Trucks on this {directionLabel} booking ({form.rows.length})</h3>
-            <p className="text-xs text-muted-foreground">Set tons and ETA for each truck.</p>
+            <p className="text-xs text-muted-foreground">Set tons for each truck, and every field marked "Different per truck".</p>
           </div>
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
             Arrange by

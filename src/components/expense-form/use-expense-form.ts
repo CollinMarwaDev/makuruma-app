@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Booking } from '~/types/booking'
-import type { ExpenseCategory, ExpenseFormKind, ExpenseOrder, LineCategory, LookupItem, PaymentMode, RouteTemplate } from '~/types/expense'
-import type { Truck } from '~/types/truck'
+import type {
+  ExpenseCategory,
+  ExpenseFormKind,
+  ExpenseListItem,
+  ExpenseOrder,
+  ExpensePickBooking,
+  ExpensePickTruck,
+  LineCategory,
+  LookupItem,
+  PaymentMode,
+  RouteTemplate,
+} from '~/types/expense'
 import type { Vendor } from '~/types/partner'
-import { fetchBookings } from '~/services/bookingService'
-import { createExpenseOrder, fetchExpenseOrders, updateExpenseOrder } from '~/services/expenseService'
+import { createExpenseOrder, fetchExpenseOrders, fetchExpensePickLists, updateExpenseOrder } from '~/services/expenseService'
 import { fetchLookup } from '~/services/expenseSettingsService'
 import { fetchRouteTemplates } from '~/services/routeTemplateService'
-import { fetchTrucks } from '~/services/truckService'
 import { fetchVendors } from '~/services/vendorService'
 import { useAuth } from '~/hooks/useAuth'
 import type { TruckOption } from '~/components/expense-form/truck-set-field'
@@ -52,14 +59,14 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
   const [usdRate, setUsdRate] = useState(expense?.usd_rate ? String(Number(expense.usd_rate)) : '')
   const [templates, setTemplates] = useState<RouteTemplate[]>([])
   const [parentOrderId, setParentOrderId] = useState(expense?.parent_order_id ? String(expense.parent_order_id) : '')
-  const [goOrders, setGoOrders] = useState<ExpenseOrder[]>([])
+  const [goOrders, setGoOrders] = useState<ExpenseListItem[]>([])
   const [subcategoryId, setSubcategoryId] = useState(expense?.other_subcategory_id ? String(expense.other_subcategory_id) : '')
   const [subcategories, setSubcategories] = useState<LookupItem[]>([])
 
   const [accounts, setAccounts] = useState<LookupItem[]>([])
-  const [bookings, setBookings] = useState<Booking[]>([])
+  const [bookings, setBookings] = useState<ExpensePickBooking[]>([])
   const [isLoadingBookings, setIsLoadingBookings] = useState(true)
-  const [trucks, setTrucks] = useState<Truck[]>([])
+  const [trucks, setTrucks] = useState<ExpensePickTruck[]>([])
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -68,8 +75,8 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
     if (type !== 'vibali_tunduma' && type !== 'vibali_congo') return
     fetchRouteTemplates(type).then(setTemplates).catch(() => setTemplates([]))
     if (type === 'vibali_congo') {
-      fetchExpenseOrders()
-        .then((all) => setGoOrders(all.filter((o) => o.expense_type === 'vibali_congo' && o.form === 'go' && o.status !== 'rejected')))
+      fetchExpenseOrders({ expense_type: 'vibali_congo', form: 'go' })
+        .then((all) => setGoOrders(all.filter((o) => o.status !== 'rejected')))
         .catch(() => setGoOrders([]))
     }
   }, [type])
@@ -80,11 +87,16 @@ export function useExpenseForm({ expense, onSaved }: ExpenseFormOptions) {
 
   useEffect(() => {
     fetchLookup('payment-accounts').then(setAccounts).catch(() => setAccounts([]))
-    fetchBookings()
-      .then(setBookings)
-      .catch(() => setBookings([]))
+    fetchExpensePickLists()
+      .then((lists) => {
+        setBookings(lists.bookings)
+        setTrucks(lists.trucks)
+      })
+      .catch(() => {
+        setBookings([])
+        setTrucks([])
+      })
       .finally(() => setIsLoadingBookings(false))
-    fetchTrucks().then(setTrucks).catch(() => setTrucks([]))
     fetchVendors().then(setVendors).catch(() => setVendors([]))
   }, [])
 

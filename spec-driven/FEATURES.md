@@ -56,3 +56,11 @@ Live data note: the product owner had already renamed Loading/Offloading/Complet
 ## expense-truck-orders-multi-truck — status: done
 
 Client request (17 Nov 2026): a Truck expense order can cover several trucks. The order picks its trucks, and each line ticks which of them it is for ("Same for all"), like Trip lines; an amount is per truck and each truck's annual report counts only its own lines. "Initiated by" is always the signed-in user (set by the server, read-only in the form).
+
+## uat-2026-11-20-feedback — status: done (not yet deployed)
+
+UAT feedback 20 Nov 2026: Booking (ETA same-for-all, booking month from average ETA), Tracking (offloaded visible 1 day on Active, status drop-down in Excel, Unbooked / Needs-booking tabs), Expenses (reference no. as form number, auto fuel driver, payment date on mark paid, approver edits after approval, fuel filling date in ledger, driver/agent money, paged list, larger PDF text, Excel mirrors PDFs). Also done 20 Nov: Vibali Congo emergency PDF groups lines of one kind (e.g. Posho) into one truck list with a Pesa column, lists four per row.
+
+Decisions 20 Nov: booking numbers never renumbered; offloaded-visible days default 1 (`.env`); expense Excel mirrors the PDFs. Answers given: route segment is label-only; Past ETA is a badge only.
+
+Artifacts: `delegate/uat-2026-11-20-feedback/` requirements → plan → tasks (all done 2026-11-20). Deploy notes at the end of tasks.md.

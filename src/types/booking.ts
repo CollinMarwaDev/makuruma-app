@@ -33,6 +33,8 @@ export interface Booking {
   direction: 'go' | 'return'
   client: Client
   eta: string | null
+  /** Average truck ETA (UAT 20 Nov); its month is the booking month. */
+  booking_date: string | null
   location: string | null
   loading_point: string | null
   offloading_point: string | null

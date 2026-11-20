@@ -4,7 +4,10 @@ import { useSearchParamsState } from '~/global/utils/r3/hooks'
 
 export const TRACKING_PAGE_SIZE = 10
 
-export type TrackingView = 'active' | 'go' | 'return' | 'offloaded'
+export type TrackingView = 'active' | 'go' | 'return' | 'offloaded' | 'unbooked' | 'urgent'
+
+/** Tabs that list trucks needing a booking instead of legs (UAT 20 Nov). */
+export const isNeedsView = (view: TrackingView): view is 'unbooked' | 'urgent' => view === 'unbooked' || view === 'urgent'
 
 type ListParams = {
   attention?: 'yes'
@@ -21,6 +24,8 @@ type ListParams = {
 
 /** Offloaded is a leg's final status (client request 17 Nov 2026). */
 const isOffloaded = (leg: TrackingLeg) => leg.current_status === 'offloaded'
+/** Open legs, and Offloaded ones for a day or so after offloading so the client still sees them (UAT 20 Nov). */
+const isOnActive = (leg: TrackingLeg) => leg.on_active_list
 export const needsAttention = (leg: TrackingLeg) => leg.is_overdue || leg.pod_overdue
 
 const SORT_VALUE: Record<string, (leg: TrackingLeg) => string | number> = {
@@ -37,13 +42,13 @@ export function useTrackingList(legs: TrackingLeg[]) {
 
   return useMemo(() => {
     const inView = (leg: TrackingLeg) =>
-      view === 'offloaded' ? isOffloaded(leg) : !isOffloaded(leg) && (view === 'active' || leg.booking.direction === view)
+      isNeedsView(view) ? false : view === 'offloaded' ? isOffloaded(leg) : isOnActive(leg) && (view === 'active' || leg.booking.direction === view)
 
-    const counts: Record<TrackingView, number> = {
-      active: legs.filter((l) => !isOffloaded(l)).length,
-      go: legs.filter((l) => !isOffloaded(l) && l.booking.direction === 'go').length,
+    const counts: Record<Exclude<TrackingView, 'unbooked' | 'urgent'>, number> = {
+      active: legs.filter(isOnActive).length,
+      go: legs.filter((l) => isOnActive(l) && l.booking.direction === 'go').length,
       offloaded: legs.filter(isOffloaded).length,
-      return: legs.filter((l) => !isOffloaded(l) && l.booking.direction === 'return').length,
+      return: legs.filter((l) => isOnActive(l) && l.booking.direction === 'return').length,
     }
 
     const term = params.q?.trim().toLowerCase() ?? ''
@@ -75,6 +80,7 @@ export function useTrackingList(legs: TrackingLeg[]) {
       counts,
       filtered: sorted,
       pageRows: sorted.slice((page - 1) * TRACKING_PAGE_SIZE, page * TRACKING_PAGE_SIZE),
+      search: params.q ?? '',
       setFilter: (key: keyof ListParams, value: string | undefined) => setParams({ [key]: value, currentPage: undefined }),
       totalPages,
       view,

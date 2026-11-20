@@ -64,6 +64,8 @@ export interface TrackingLeg extends Record<LegDateField, string | null> {
   eta: string | null
   id: number
   is_overdue: boolean
+  /** Open, or Offloaded within the last day(s): shown on the Active list (UAT 20 Nov). */
+  on_active_list: boolean
   loading_point: string | null
   milestones: LegMilestone[]
   offloading_point: string | null

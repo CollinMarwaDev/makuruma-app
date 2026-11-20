@@ -44,6 +44,9 @@ function sharedValue(booking: Booking, field: 'loading_point' | 'offloading_poin
   return [...values][0] || '—'
 }
 
+/** "Nov 2026" from the booking date (average truck ETA). */
+const bookingMonth = (date: string) => new Date(`${date.slice(0, 10)}T00:00:00`).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+
 function etaRange(booking: Booking): string {
   const etas = booking.booking_trucks.map((bt) => bt.eta?.slice(0, 10)).filter(Boolean).sort() as string[]
   if (etas.length === 0) return '—'
@@ -104,6 +107,7 @@ export const BookingsTableSection: FC<BookingsTableSectionProps> = ({ bookings, 
                 <BookingTable.Row rowId={String(booking.id)}>
                   <BookingTable.Cell className="font-medium">
                     {booking.booking_number}
+                    {booking.booking_date && <p className="text-xs font-normal text-muted-foreground">Month: {bookingMonth(booking.booking_date)}</p>}
                     {booking.source_booking && <p className="text-xs font-normal text-muted-foreground">from {booking.source_booking.booking_number}</p>}
                   </BookingTable.Cell>
                   <BookingTable.Cell>

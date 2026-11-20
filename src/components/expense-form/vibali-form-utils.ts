@@ -58,6 +58,7 @@ export function vibaliProblem(rows: LineRow[], allowNegative = false): string | 
   if (rows.some((r) => !r.description.trim())) return 'Every line needs a description.'
   if (rows.some((r) => (allowNegative ? num(r.unitRate) === 0 : num(r.unitRate) <= 0))) return 'Every line needs an amount.'
   if (rows.some((r) => !r.isFlat && r.truckIds.length === 0)) return 'Select the trucks of every line, or mark it as one amount for the order.'
+  if (rows.some((r) => !r.payee)) return 'Choose on every line whether the money goes to the driver or stays with the agent.'
   return null
 }
 

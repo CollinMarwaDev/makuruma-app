@@ -13,6 +13,8 @@ export interface LineRow {
   /** Fuel on a Trip order: driver's name per booking truck id. */
   drivers: Record<string, string>
   exchangeRate: string
+  /** Fuel: day the truck was filled (optional; used by the vendor ledger, UAT 20 Nov). */
+  filledAt: string
   /** Saved group_key, kept so the API can match lines and log price changes. */
   groupKey?: string
   key: string
@@ -24,7 +26,7 @@ export interface LineRow {
   litres: Record<string, string>
   /** Vibali: e.g. 10 gates; 1 when not used. */
   multiplier: string
-  /** Vibali form 129: who receives the money (not printed). */
+  /** Vibali: whether the money goes to the driver or stays with the agent (required, UAT 20 Nov). */
   payee: '' | 'driver' | 'agent'
   quantity: string
   truckIds: string[]
@@ -40,6 +42,7 @@ export const newRow = (): LineRow => ({
   driver: '',
   drivers: {},
   exchangeRate: '1',
+  filledAt: '',
   isAdditional: false,
   isFlat: false,
   key: crypto.randomUUID(),
@@ -91,6 +94,7 @@ export function rowsFromLines(lines: ExpenseLine[]): LineRow[] {
       driver: first.driver_name ?? '',
       drivers,
       exchangeRate: first.exchange_rate,
+      filledAt: first.filled_at?.slice(0, 10) ?? '',
       groupKey: first.group_key ?? undefined,
       isAdditional: first.is_additional,
       isFlat: first.is_flat,
@@ -121,11 +125,11 @@ export function buildLines(rows: LineRow[], category: ExpenseCategory, type: Lin
       return row.truckIds.map((id) => {
         const truck = category === 'trip' ? { booking_truck_id: id } : { truck_id: id }
         return type === 'fuel'
-          ? { ...base, ...truck, driver_name: row.drivers[id]?.trim(), quantity: row.litres[id] || '0', unit_rate: row.unitRate || undefined }
+          ? { ...base, ...truck, driver_name: row.drivers[id]?.trim() || undefined, filled_at: row.filledAt || undefined, quantity: row.litres[id] || '0', unit_rate: row.unitRate || undefined }
           : { ...base, ...truck, original_amount: row.amount || '0' }
       })
     }
-    if (type === 'fuel') return [{ ...base, driver_name: row.driver.trim(), quantity: row.quantity || '0', unit_rate: row.unitRate || undefined }]
+    if (type === 'fuel') return [{ ...base, driver_name: row.driver.trim() || undefined, filled_at: row.filledAt || undefined, quantity: row.quantity || '0', unit_rate: row.unitRate || undefined }]
     if (category === 'office') return [{ ...base, quantity: row.quantity || '0', unit_rate: row.unitRate || '0' }]
     return [{ ...base, original_amount: row.amount || '0' }]
   })
@@ -138,9 +142,7 @@ export function rowsProblem(rows: LineRow[], category: ExpenseCategory, type: Li
   if (category !== 'office' && rows.some((r) => r.truckIds.length === 0)) return 'Select at least one truck on every line.'
   if (type !== 'fuel') return null
   if (category === 'office') return 'Fuel is for a truck: choose Trip or Truck, not Office.'
-  const perTruck = (r: LineRow) => r.truckIds.map((id) => [r.litres[id], r.drivers[id]])
-  if (rows.some((r) => perTruck(r).some(([litres]) => num(litres) <= 0))) return 'Enter the litres for every truck.'
-  if (rows.some((r) => perTruck(r).some(([, driver]) => !driver?.trim()))) return "Enter the driver's name for every truck."
+  if (rows.some((r) => r.truckIds.some((id) => num(r.litres[id]) <= 0))) return 'Enter the litres for every truck.'
   return null
 }
 

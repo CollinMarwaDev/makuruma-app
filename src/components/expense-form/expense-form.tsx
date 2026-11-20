@@ -99,9 +99,9 @@ const ExpenseForm: FC<ExpenseFormOptions> = (props) => {
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label htmlFor="reference-no" className={labelClass}>Reference no.</label>
+          <label htmlFor="reference-no" className={labelClass}>Form number (reference no.)</label>
           <input id="reference-no" value={form.referenceNo} onChange={(e) => form.setReferenceNo(e.target.value)} placeholder="e.g. 82" className={fieldClass} />
-          <p className="mt-1 text-xs text-muted-foreground">Must be unique across all expense orders.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Printed as "NO:" on the form. Must be unique within this expense type.</p>
         </div>
         <div>
           <label htmlFor="initiated-by" className={labelClass}>Initiated by</label>

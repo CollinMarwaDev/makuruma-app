@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { Booking } from '~/types/booking'
 import { fetchBookings, deleteBooking, downloadBookingAccessList } from '~/services/bookingService'
 import BookingForm from '~/components/booking-form/booking-form'
@@ -18,9 +19,12 @@ function Bookings() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<unknown>(null)
   const [reloadTrigger, setReloadTrigger] = useState(0)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  /** `?new=go|return` (e.g. "Create booking" on Tracking › Needs booking) opens the booking form on arrival. */
+  const requested = searchParams.get('new')
+  const [isModalOpen, setIsModalOpen] = useState(requested === 'go' || requested === 'return')
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null)
-  const [newDirection, setNewDirection] = useState<'go' | 'return'>('go')
+  const [newDirection, setNewDirection] = useState<'go' | 'return'>(requested === 'return' ? 'return' : 'go')
   const [sourceBooking, setSourceBooking] = useState<Booking | null>(null)
 
   useEffect(() => {
@@ -37,6 +41,13 @@ function Bookings() {
       cancelled = true
     }
   }, [reloadTrigger])
+
+  useEffect(() => {
+    if (requested) setSearchParams((prev) => {
+      prev.delete('new')
+      return prev
+    }, { replace: true })
+  }, [requested, setSearchParams])
 
   const refresh = () => setReloadTrigger((prev) => prev + 1)
 

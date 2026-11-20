@@ -25,7 +25,7 @@ const fieldClass = 'w-full rounded-lg bg-secondary px-3 py-2 text-sm text-foregr
 
 /** Fill in or correct fuel prices on a pending or approved order; a set price needs a reason to change (req. 9). */
 export const PriceUpdateDialog: FC<PriceUpdateDialogProps> = ({ expense, onClose, onSaved }) => (
-  <FormModal open={!!expense} onClose={onClose} title={expense ? `Fuel prices — ${expense.order_number}` : ''}>
+  <FormModal open={!!expense} onClose={onClose} title={expense ? `Fuel prices — ${expense.form_number}` : ''}>
     {expense && <PriceForm key={expense.id} expense={expense} onSaved={onSaved} />}
   </FormModal>
 )
@@ -61,7 +61,7 @@ const PriceForm: FC<{ expense: ExpenseOrder; onSaved: () => void }> = ({ expense
         prices: changed.flatMap((g) => g.lines.map((l) => ({ line_id: l.id, unit_rate: prices[g.key] }))),
         reason: needsReason ? reason.trim() : undefined,
       })
-      toast.success(`Prices saved on ${expense.order_number}`)
+      toast.success(`Prices saved on ${expense.form_number}`)
       onSaved()
     } catch (err) {
       setError(getErrorMessage(err))

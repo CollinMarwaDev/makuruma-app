@@ -48,7 +48,7 @@ export const VibaliHeader: FC<VibaliHeaderProps> = ({ fieldClass, form, labelCla
             <option value="">— Select the going order (165) —</option>
             {form.goOrders.map((o) => (
               <option key={o.id} value={o.id}>
-                {o.order_number} · {o.bookings.map((b) => b.booking_number).join(', ')} · ${Number(o.usd_total).toLocaleString()}
+                {o.form_number} · {o.bookings.map((b) => b.booking_number).join(', ')} · ${Number(o.usd_total).toLocaleString()}
               </option>
             ))}
           </select>
